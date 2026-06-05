@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WatchDesk V2 Preview</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="mark">WD</span>
+        <div>
+          <p>Version 2A-2E</p>
+          <h1>WatchDesk</h1>
+        </div>
+      </div>
+
+      <nav aria-label="Version 2 sections">
+        <button class="nav-button active" type="button" data-view="ops">Ops Command</button>
+        <button class="nav-button" type="button" data-view="field">V2A Field Shell</button>
+        <button class="nav-button" type="button" data-view="checkins">V2B Check-ins</button>
+        <button class="nav-button" type="button" data-view="payroll">V2C Payroll</button>
+        <button class="nav-button" type="button" data-view="exports">V2E Exports</button>
+        <button class="nav-button" type="button" data-view="schema">Schema + Roles</button>
+      </nav>
+
+      <div class="side-panel">
+        <span class="label">Prototype mode</span>
+        <strong>Static preview</strong>
+        <p>No backend yet. This page models the V2 data structure and workflows from the new research brief.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Security operations SaaS preview</p>
+          <h2 id="pageTitle">Ops Command</h2>
+        </div>
+        <div class="controls">
+          <label>
+            Active role
+            <select id="roleSelect">
+              <option value="UL">UL</option>
+              <option value="CFSL">CFSL</option>
+              <option value="CML">CML</option>
+              <option value="CAL">CAL</option>
+              <option value="ARUL">ARUL</option>
+              <option value="SA">SA</option>
+              <option value="Lori">Lori</option>
+            </select>
+          </label>
+          <button id="resetState" class="secondary" type="button">Reset V2 demo</button>
+        </div>
+      </header>
+
+      <section id="opsView" class="view active-view">
+        <div class="metric-grid" id="metrics"></div>
+
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Realtime-ready</p>
+                <h3>Live shifts</h3>
+              </div>
+              <span class="pill" id="scopePill"></span>
+            </div>
+            <div id="shiftList" class="stack"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Supervisor queue</p>
+                <h3>Incidents and overdue posts</h3>
+              </div>
+              <span class="pill danger" id="incidentPill"></span>
+            </div>
+            <div id="incidentList" class="stack"></div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Milestone map</p>
+              <h3>Version 2A-2E delivery plan</h3>
+            </div>
+          </div>
+          <div class="timeline" id="milestones"></div>
+        </section>
+      </section>
+
+      <section id="fieldView" class="view">
+        <div class="grid field-grid">
+          <section class="phone">
+            <div class="phone-top">
+              <strong>UL Field Shell</strong>
+              <span id="outboxBadge" class="pill"></span>
+            </div>
+
+            <div class="notice" id="fieldNotice">Current shift shell uses shifts and report entries instead of one local report timer.</div>
+
+            <form id="entryForm" class="form-stack">
+              <div class="form-row">
+                <label>
+                  Shift
+                  <select id="fieldShift"></select>
+                </label>
+                <label>
+                  Report type
+                  <select id="reportType">
+                    <option>DAR</option>
+                    <option>IR</option>
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                Entry kind
+                <select id="entryKind">
+                  <option value="tour_normal">Tour normal</option>
+                  <option value="tour_unusual">Tour unusual</option>
+                  <option value="fire">Fire</option>
+                  <option value="suspect">Suspect person</option>
+                  <option value="theft">Theft</option>
+                  <option value="manual">Manual entry</option>
+                </select>
+              </label>
+
+              <label>
+                Narrative original
+                <textarea id="entryNarrative" placeholder="Required for unusual, fire, suspect, theft, and manual incident notes."></textarea>
+              </label>
+
+              <label>
+                Clean / English preview
+                <textarea id="entryClean" placeholder="Cleaned copy or translation preview appears here."></textarea>
+              </label>
+
+              <div class="button-grid">
+                <button id="cleanCopy" class="secondary" type="button">Clean text</button>
+                <button id="queueEntry" class="primary" type="submit">Append entry</button>
+              </div>
+            </form>
+
+            <div class="mobile-list" id="fieldEntries"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Offline-first contract</p>
+                <h3>Device outbox</h3>
+              </div>
+              <button id="syncOutbox" class="secondary" type="button">Sync outbox</button>
+            </div>
+            <div id="outboxList" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="checkinsView" class="view">
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">V2B</p>
+                <h3>Expected check-in windows</h3>
+              </div>
+              <button id="markCheckin" class="primary" type="button">Record check-in</button>
+            </div>
+            <div id="checkinRows" class="table-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Escalation MVP</p>
+                <h3>Supervisor alerts</h3>
+              </div>
+            </div>
+            <div id="alertList" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="payrollView" class="view">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">V2C</p>
+              <h3>Payroll line items</h3>
+            </div>
+            <div class="actions">
+              <button id="approvePayroll" class="secondary" type="button">Approve selected period</button>
+              <button id="exportPayroll" class="primary" type="button">Export CSV v2</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Shift</th>
+                  <th>Regular</th>
+                  <th>OT</th>
+                  <th>Incidents</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="payrollRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="exportsView" class="view">
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">V2E</p>
+                <h3>Canonical DAR/IR export</h3>
+              </div>
+              <button id="generateExport" class="primary" type="button">Generate PDF record</button>
+            </div>
+            <article id="printPreview" class="print-preview"></article>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Private storage</p>
+                <h3>Export history</h3>
+              </div>
+            </div>
+            <div id="exportList" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="schemaView" class="view">
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Data model</p>
+                <h3>V2 core entities</h3>
+              </div>
+            </div>
+            <div id="entityList" class="entity-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Authorization</p>
+                <h3>Role capability matrix</h3>
+              </div>
+            </div>
+            <div id="roleMatrix" class="role-matrix"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

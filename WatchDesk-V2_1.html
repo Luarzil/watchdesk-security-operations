@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WatchDesk V2 - Security Operations</title>
+  <style>
+    :root {
+      --bg: #edf3f7;
+      --surface: #ffffff;
+      --soft: #f7fafc;
+      --ink: #142033;
+      --muted: #627086;
+      --line: #d5dee8;
+      --blue: #1f5d8b;
+      --green: #23714e;
+      --red: #a13b36;
+      --gold: #bd8617;
+      --shadow: 0 18px 46px rgba(20, 32, 51, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+
+    .page {
+      width: min(1520px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 6px; font-size: clamp(34px, 5vw, 54px); letter-spacing: 0; }
+    h2 { margin-bottom: 0; font-size: 22px; letter-spacing: 0; }
+    h3 { margin-bottom: 6px; letter-spacing: 0; }
+
+    .subhead, .muted { color: var(--muted); }
+    .subhead { margin-bottom: 0; font-size: 16px; }
+
+    .top-actions, .button-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary, .secondary, .danger {
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .primary { background: var(--blue); color: #ffffff; }
+    .secondary { background: #e8f0f7; color: #1e4768; border: 1px solid #c8d8e6; }
+    .danger { background: var(--red); color: #ffffff; }
+    .primary:disabled, .secondary:disabled, .danger:disabled { opacity: .5; cursor: not-allowed; }
+
+    .role-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .role-bar label { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); }
+    .role-bar select { width: auto; min-width: 220px; }
+    .role-note { color: var(--muted); font-size: 13px; }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      min-height: 48px;
+      border-radius: 8px;
+      background: #dfe9f2;
+      color: #34455b;
+      font-weight: 800;
+    }
+    .tab.active { background: var(--ink); color: #ffffff; }
+    .tab[hidden] { display: none; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric, .panel, .phone {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 16px;
+      border-left: 5px solid var(--blue);
+    }
+    .metric:nth-child(2) { border-left-color: var(--green); }
+    .metric:nth-child(3) { border-left-color: var(--gold); }
+    .metric:nth-child(4) { border-left-color: var(--red); }
+    .metric span { display: block; color: var(--muted); font-size: 12px; }
+    .metric strong { display: block; margin: 8px 0 6px; font-size: 34px; }
+
+    .grid { display: grid; gap: 16px; }
+    .two { grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.8fr); }
+    .phone-grid { grid-template-columns: minmax(320px, 430px) minmax(320px, 1fr); }
+
+    .panel { padding: 18px; }
+
+    .panel-head, .phone-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stack, .form { display: grid; gap: 10px; }
+
+    .card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 13px;
+    }
+    .card.alert { border-left: 5px solid var(--red); }
+    .card.warnline { border-left: 5px solid var(--gold); }
+
+    .card-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.8fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill, .tag {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 2px 9px;
+      background: #e8f0f7;
+      color: #1e4768;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .good { background: #e6f4ec; color: var(--green); }
+    .warn { background: #fff4d9; color: #74500c; }
+    .bad { background: #fae9e6; color: var(--red); }
+
+    .countdown { font-variant-numeric: tabular-nums; font-weight: 800; }
+
+    .phone {
+      border-radius: 18px;
+      background: #111827;
+      color: #ffffff;
+      padding: 14px;
+    }
+    .phone-head, .shift-card, .form { border-radius: 8px; }
+    .shift-card, .form {
+      background: #ffffff;
+      color: var(--ink);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .shift-card p:last-child { margin-bottom: 0; }
+
+    .checkin-windows { display: grid; gap: 6px; margin-top: 10px; }
+    .win {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 6px 10px; border-radius: 8px;
+      background: #f1f5f9; color: var(--ink); font-size: 13px;
+    }
+
+    .big-check {
+      width: 100%;
+      min-height: 88px;
+      border-radius: 8px;
+      background: var(--green);
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .big-check.due { background: var(--gold); }
+    .big-check.overdue { background: var(--red); }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    select, textarea, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      min-height: 42px;
+      padding: 9px 10px;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 13px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    tbody tr.locked { background: #f4f7fa; color: var(--muted); }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .period-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      padding: 12px 14px; margin-bottom: 14px;
+      border: 1px solid var(--line); border-radius: 8px; background: var(--soft);
+    }
+    .period-head .totals { display: flex; gap: 18px; flex-wrap: wrap; }
+    .period-head .totals div { font-size: 13px; color: var(--muted); }
+    .period-head .totals strong { display: block; font-size: 20px; color: var(--ink); }
+
+    .row-actions { display: flex; gap: 6px; }
+    .mini {
+      min-height: 32px; border-radius: 6px; padding: 0 10px;
+      font-size: 12px; font-weight: 800;
+    }
+    .mini.ok { background: #e6f4ec; color: var(--green); border: 1px solid #bfe0cd; }
+    .mini.no { background: #fae9e6; color: var(--red); border: 1px solid #e6c4c0; }
+
+    .paper {
+      min-height: 440px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+    }
+    .paper header {
+      display: flex; justify-content: space-between; gap: 12px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 14px; padding-bottom: 12px;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 10;
+      width: min(380px, calc(100% - 36px));
+      border: 1px solid #b8d7c5;
+      border-left: 5px solid var(--green);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast strong { display: block; margin-bottom: 3px; }
+
+    .live-feed { margin-top: 16px; }
+    .feed-list { display: grid; gap: 8px; }
+    .feed-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 10px;
+    }
+    .feed-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      margin-top: 5px;
+    }
+    .feed-item strong { display: block; }
+
+    @media (max-width: 980px) {
+      .two, .phone-grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
+      .page { width: min(100% - 20px, 1520px); }
+      .topbar, .panel-head, .card-row, .top-actions, .button-row {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+      .tabs, .metrics { grid-template-columns: 1fr; }
+      .primary, .secondary, .danger { width: 100%; }
+    }
+    @media print {
+      body { background: #ffffff; }
+      .topbar, .tabs, .role-bar, .panel:not(.print-panel), .panel-head button {
+        display: none !important;
+      }
+      .page, .screen, .screen.active { display: block; width: 100%; padding: 0; }
+      .print-panel, .paper { box-shadow: none; border: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Security operations app</p>
+        <h1>WatchDesk V2</h1>
+        <p class="subhead">Shifts, hourly check-ins with overdue alerts, payroll approvals, and DAR/IR reports.</p>
+      </div>
+      <div class="top-actions">
+        <button id="toggleOnline" class="secondary" type="button">Go offline</button>
+        <button id="resetDemo" class="secondary" type="button">Reset demo</button>
+        <button id="exportJson" class="primary" type="button">Export data</button>
+      </div>
+    </header>
+
+    <div class="role-bar">
+      <label>
+        Signed in as
+        <select id="roleSelect"></select>
+      </label>
+      <span id="roleNote" class="role-note"></span>
+    </div>
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <nav class="tabs" aria-label="Main screens">
+      <button class="tab active" type="button" data-screen="admin">Admin Dashboard</button>
+      <button class="tab" type="button" data-screen="guard">Guard App</button>
+      <button class="tab" type="button" data-screen="payroll">Payroll</button>
+      <button class="tab" type="button" data-screen="reports">Reports</button>
+    </nav>
+
+    <main>
+      <section id="adminScreen" class="screen active">
+        <div class="metrics" id="metrics"></div>
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>Guards and posts</h2>
+              </div>
+              <span id="syncBadge" class="pill"></span>
+            </div>
+            <div id="shiftBoard" class="stack"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Needs attention</p>
+                <h2>Supervisor queue</h2>
+              </div>
+              <span id="overdueBadge" class="pill"></span>
+            </div>
+            <div id="attentionList" class="stack"></div>
+          </section>
+        </div>
+
+        <section class="panel live-feed">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Live demo activity</p>
+              <h2>What just changed?</h2>
+            </div>
+            <span class="pill good">All screens connected</span>
+          </div>
+          <div id="liveFeed" class="feed-list"></div>
+        </section>
+      </section>
+
+      <section id="guardScreen" class="screen">
+        <div class="grid phone-grid">
+          <section class="phone">
+            <div class="phone-head">
+              <strong>Guard phone</strong>
+              <span id="phoneBadge" class="pill good">Online</span>
+            </div>
+
+            <div class="shift-card">
+              <p class="eyebrow">Current shift</p>
+              <h2 id="currentShiftTitle"></h2>
+              <p id="currentShiftMeta" class="muted"></p>
+              <div id="checkinWindows" class="checkin-windows"></div>
+            </div>
+
+            <button id="checkInNow" class="big-check" type="button">Check in: everything is normal</button>
+
+            <form id="entryForm" class="form">
+              <label>
+                Shift
+                <select id="shiftSelect"></select>
+              </label>
+              <label>
+                Report
+                <select id="reportType">
+                  <option value="DAR">DAR - Daily activity</option>
+                  <option value="IR">IR - Incident report</option>
+                </select>
+              </label>
+              <label>
+                Activity
+                <select id="entryType">
+                  <option value="normal">Tour complete, all normal</option>
+                  <option value="unusual">Something unusual</option>
+                  <option value="fire">Fire</option>
+                  <option value="suspect">Suspicious person</option>
+                  <option value="theft">Theft</option>
+                  <option value="manual">Other note</option>
+                </select>
+              </label>
+              <label>
+                Notes
+                <textarea id="entryNote" placeholder="Type the guard's note here."></textarea>
+              </label>
+              <div class="button-row">
+                <button id="cleanNote" class="secondary" type="button">Clean note</button>
+                <button class="primary" type="submit">Save note</button>
+              </div>
+            </form>
+
+            <button id="finishShift" class="danger" type="button">Finish selected shift</button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Saved on this shift</p>
+                <h2>Guard timeline</h2>
+              </div>
+            </div>
+            <div id="guardTimeline" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="payrollScreen" class="screen">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Pay period</p>
+              <h2>Payroll review</h2>
+            </div>
+            <div class="button-row">
+              <button id="approveReady" class="secondary" type="button">Approve ready rows</button>
+              <button id="closePeriod" class="danger" type="button">Close period</button>
+              <button id="exportPayroll" class="primary" type="button">Export payroll CSV</button>
+            </div>
+          </div>
+
+          <div class="period-head">
+            <div>
+              <p class="eyebrow" style="margin-bottom:2px;">Current period</p>
+              <strong id="periodLabel"></strong>
+              <span id="periodStatus" class="tag"></span>
+            </div>
+            <div class="totals" id="periodTotals"></div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Guard</th>
+                  <th>Site</th>
+                  <th>Shift</th>
+                  <th class="num">Reg hrs</th>
+                  <th class="num">OT hrs</th>
+                  <th class="num">Check-ins</th>
+                  <th class="num">Missed</th>
+                  <th class="num">Incidents</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="payrollRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="reportsScreen" class="screen">
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Paper replacement</p>
+                <h2>DAR / IR records</h2>
+              </div>
+              <button id="finalizeReport" class="secondary" type="button">Finalize selected</button>
+            </div>
+            <div id="reportList" class="stack"></div>
+          </section>
+
+          <section class="panel print-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Printable record</p>
+                <h2>Report preview</h2>
+              </div>
+              <button id="printReport" class="secondary" type="button">Print</button>
+            </div>
+            <article id="reportPreview" class="paper"></article>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const STORAGE_KEY = "watchdesk-v2-state";
+    const incidentTypes = new Set(["unusual", "fire", "suspect", "theft"]);
+    const MS_MIN = 60000;
+
+    // ---- Roles: capability flags drive what each signed-in user can do ----
+    const ROLES = {
+      UL:   { label: "UL - Field guard (Jordan Miles)", asGuard: "guard-1", canApprovePayroll: false, canClosePeriod: false, canViewPayroll: "own", note: "Field operator: own shift, check-ins, and reports only." },
+      CFSL: { label: "CFSL - Site supervisor", asGuard: null, canApprovePayroll: false, canClosePeriod: false, canViewPayroll: "site", note: "Site supervisor: monitors check-ins and triages incidents." },
+      CML:  { label: "CML - Operations manager", asGuard: null, canApprovePayroll: true, canClosePeriod: false, canViewPayroll: "org", note: "Operations manager: can approve and adjust payroll rows." },
+      SA:   { label: "SA - Super admin", asGuard: null, canApprovePayroll: true, canClosePeriod: true, canViewPayroll: "org", note: "Super admin: full access, including closing the pay period." }
+    };
+
+    // Build a fixed "today" base so the demo's clock math is stable across loads.
+    function todayAt(h, m) {
+      const d = new Date();
+      d.setHours(h, m, 0, 0);
+      return d.getTime();
+    }
+
+    function freshStarter() {
+      // Anchor a believable shift day around the current clock.
+      const now = Date.now();
+      const shiftStart = now - 150 * MS_MIN; // started ~2.5h ago
+      return {
+        screen: "admin",
+        online: true,
+        role: "SA",
+        selectedShiftId: "shift-1",
+        selectedReportId: "entry-2",
+        queue: [],
+        period: { id: "period-1", label: "Pay period - this week", status: "Open" },
+        activityLog: [
+          { id: "log-1", title: "Demo ready", detail: "Guard actions will update admin, reports, and payroll from the same data.", at: now }
+        ],
+        guards: [
+          { id: "guard-1", name: "Jordan Miles", employee: "SG-1007", rate: 22.5 },
+          { id: "guard-2", name: "Riley Chen", employee: "SG-1014", rate: 21.0 },
+          { id: "guard-3", name: "Avery Stone", employee: "SG-1022", rate: 24.0 }
+        ],
+        shifts: [
+          { id: "shift-1", guardId: "guard-1", site: "Warehouse North", post: "North gate", start: "8:00 AM", end: "4:00 PM", scheduledHours: 8, policyMinutes: 60, startedAt: shiftStart, lastCheckIn: now - 12 * MS_MIN, status: "On duty", finished: false },
+          { id: "shift-2", guardId: "guard-2", site: "Medical Plaza", post: "Main lobby", start: "7:00 AM", end: "3:00 PM", scheduledHours: 8, policyMinutes: 60, startedAt: shiftStart - 60 * MS_MIN, lastCheckIn: now - 95 * MS_MIN, status: "On duty", finished: false },
+          { id: "shift-3", guardId: "guard-3", site: "Transit Lot C", post: "Vehicle patrol", start: "6:00 AM", end: "2:00 PM", scheduledHours: 8, policyMinutes: 45, startedAt: shiftStart - 120 * MS_MIN, lastCheckIn: now - 5 * MS_MIN, status: "On duty", finished: false }
+        ],
+        checkins: [
+          { id: "check-1", shiftId: "shift-1", expectedAt: shiftStart + 60 * MS_MIN, receivedAt: shiftStart + 61 * MS_MIN, status: "Received" },
+          { id: "check-2", shiftId: "shift-1", expectedAt: shiftStart + 120 * MS_MIN, receivedAt: now - 12 * MS_MIN, status: "Received" },
+          { id: "check-3", shiftId: "shift-2", expectedAt: now - 35 * MS_MIN, receivedAt: null, status: "Missed" },
+          { id: "check-4", shiftId: "shift-3", expectedAt: now - 5 * MS_MIN, receivedAt: now - 5 * MS_MIN, status: "Received" }
+        ],
+        entries: [
+          { id: "entry-1", shiftId: "shift-1", reportType: "DAR", type: "normal", note: "North entrance, loading dock, and camera room checked. All normal.", time: "9:00 AM", incident: false, finalized: false },
+          { id: "entry-2", shiftId: "shift-2", reportType: "IR", type: "suspect", note: "Unknown person tried to enter staff corridor without a visitor badge.", time: "8:39 AM", incident: true, finalized: false },
+          { id: "entry-3", shiftId: "shift-3", reportType: "DAR", type: "normal", note: "Vehicle patrol complete. No damage or unlocked vehicles found.", time: "10:00 AM", incident: false, finalized: true }
+        ],
+        payroll: [
+          { shiftId: "shift-1", status: "Ready", regHours: null, otHours: null, locked: false, note: "" },
+          { shiftId: "shift-2", status: "Review", regHours: null, otHours: null, locked: false, note: "" },
+          { shiftId: "shift-3", status: "Ready", regHours: null, otHours: null, locked: false, note: "" }
+        ]
+      };
+    }
+
+    let starter = freshStarter();
+    let state = loadState();
+    const $ = (id) => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      hydrateRoleSelect();
+      bindEvents();
+      hydrateShiftSelect();
+      render();
+      // Live clock: re-evaluate overdue status and countdowns every 15s.
+      setInterval(tick, 15000);
+    });
+
+    function tick() {
+      recomputeCheckins();
+      saveState();
+      render();
+    }
+
+    // ---- Check-in engine ---------------------------------------------------
+    // A shift is "due" when the next expected window is within 10 min,
+    // and "overdue" once now passes expected + policyMinutes grace.
+    function checkinState(shift) {
+      if (shift.finished) return { kind: "done", minutesLeft: null };
+      const policy = shift.policyMinutes || 60;
+      const nextExpected = shift.lastCheckIn + policy * MS_MIN;
+      const minutesLeft = Math.round((nextExpected - Date.now()) / MS_MIN);
+      if (minutesLeft <= 0) return { kind: "overdue", minutesLeft };
+      if (minutesLeft <= 10) return { kind: "due", minutesLeft };
+      return { kind: "ok", minutesLeft };
+    }
+
+    // Promote any expected-but-unmet check-in window to a Missed record.
+    function recomputeCheckins() {
+      state.shifts.forEach((shift) => {
+        if (shift.finished) return;
+        const cs = checkinState(shift);
+        if (cs.kind === "overdue") {
+          const sinceMissed = Math.abs(cs.minutesLeft);
+          const policy = shift.policyMinutes || 60;
+          // Has a missed record already been logged for this window?
+          const expectedWindow = shift.lastCheckIn + policy * MS_MIN;
+          const already = state.checkins.some(
+            (c) => c.shiftId === shift.id && c.status === "Missed" && Math.abs(c.expectedAt - expectedWindow) < MS_MIN
+          );
+          if (sinceMissed >= 0 && !already) {
+            state.checkins.push({
+              id: crypto.randomUUID(),
+              shiftId: shift.id,
+              expectedAt: expectedWindow,
+              receivedAt: null,
+              status: "Missed"
+            });
+            const pr = state.payroll.find((r) => r.shiftId === shift.id);
+            if (pr && !pr.locked && pr.status !== "Approved") pr.status = "Review";
+          }
+        }
+      });
+    }
+
+    // ---- Payroll math ------------------------------------------------------
+    // Reg hours derive from elapsed shift time capped at 8; anything beyond is OT.
+    function payrollHours(shift) {
+      const endRef = shift.finished ? (shift.lastCheckIn || Date.now()) : Date.now();
+      let elapsed = (endRef - shift.startedAt) / (60 * MS_MIN); // hours
+      if (!isFinite(elapsed) || elapsed < 0) elapsed = shift.scheduledHours || 0;
+      elapsed = Math.max(0.25, Math.round(elapsed * 100) / 100);
+      const reg = Math.min(8, elapsed);
+      const ot = Math.max(0, elapsed - 8);
+      return { reg: round2(reg), ot: round2(ot) };
+    }
+    function round2(n) { return Math.round(n * 100) / 100; }
+
+    function effectiveHours(row, shift) {
+      const calc = payrollHours(shift);
+      return {
+        reg: row.regHours == null ? calc.reg : row.regHours,
+        ot: row.otHours == null ? calc.ot : row.otHours
+      };
+    }
+
+    function hydrateRoleSelect() {
+      $("roleSelect").innerHTML = Object.entries(ROLES)
+        .map(([key, r]) => `<option value="${key}">${esc(r.label)}</option>`)
+        .join("");
+      $("roleSelect").value = state.role || "SA";
+    }
+
+    function currentRole() { return ROLES[state.role] || ROLES.SA; }
+
+    function bindEvents() {
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.screen = button.dataset.screen;
+          saveState();
+          render();
+        });
+      });
+
+      $("roleSelect").addEventListener("change", () => {
+        state.role = $("roleSelect").value;
+        const r = currentRole();
+        // If this role is a field guard, point the guard app at their shift.
+        if (r.asGuard) {
+          const sh = state.shifts.find((s) => s.guardId === r.asGuard);
+          if (sh) state.selectedShiftId = sh.id;
+        }
+        saveState();
+        hydrateShiftSelect();
+        render();
+      });
+
+      $("toggleOnline").addEventListener("click", () => {
+        state.online = !state.online;
+        const cleared = state.queue.length;
+        if (state.online) state.queue = [];
+        recordActivity(
+          state.online ? "Back online" : "Offline mode enabled",
+          state.online ? `${cleared} queued action(s) synced to admin.` : "New guard actions will queue locally until online."
+        );
+        saveState();
+        render();
+      });
+      $("resetDemo").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        starter = freshStarter();
+        state = structuredClone(starter);
+        hydrateRoleSelect();
+        hydrateShiftSelect();
+        render();
+      });
+      $("exportJson").addEventListener("click", () => download("watchdesk-v2-data.json", JSON.stringify(state, null, 2), "application/json"));
+      $("shiftSelect").addEventListener("change", () => {
+        state.selectedShiftId = $("shiftSelect").value;
+        saveState();
+        render();
+      });
+      $("checkInNow").addEventListener("click", checkInNow);
+      $("entryForm").addEventListener("submit", saveEntry);
+      $("cleanNote").addEventListener("click", cleanNote);
+      $("finishShift").addEventListener("click", finishShift);
+      $("approveReady").addEventListener("click", approveReadyPayroll);
+      $("closePeriod").addEventListener("click", closePeriod);
+      $("exportPayroll").addEventListener("click", exportPayrollCsv);
+      $("finalizeReport").addEventListener("click", finalizeSelectedReport);
+      $("printReport").addEventListener("click", () => window.print());
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (!saved) return structuredClone(starter);
+        // Guard against older shapes: ensure new fields exist.
+        if (!saved.period) saved.period = structuredClone(starter.period);
+        if (!saved.role) saved.role = "SA";
+        if (!saved.activityLog) saved.activityLog = structuredClone(starter.activityLog || []);
+        return saved;
+      } catch {
+        return structuredClone(starter);
+      }
+    }
+
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    function hydrateShiftSelect() {
+      $("shiftSelect").innerHTML = state.shifts.map((shift) => {
+        const guard = getGuard(shift.guardId);
+        return `<option value="${esc(shift.id)}">${esc(guard.name)} - ${esc(shift.site)}</option>`;
+      }).join("");
+      $("shiftSelect").value = state.selectedShiftId;
+    }
+
+    function render() {
+      const role = currentRole();
+      document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.screen === state.screen));
+      document.querySelectorAll(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === `${state.screen}Screen`));
+      $("toggleOnline").textContent = state.online ? "Go offline" : "Go online";
+      $("roleNote").textContent = role.note;
+      renderAdmin();
+      renderGuard();
+      renderPayroll();
+      renderReports();
+      renderActivityLog();
+    }
+
+    function renderAdmin() {
+      const active = state.shifts.filter((shift) => !shift.finished).length;
+      const overdueShifts = state.shifts.filter((s) => !s.finished && checkinState(s).kind === "overdue").length;
+      const incidents = state.entries.filter((entry) => entry.incident).length;
+      const review = state.payroll.filter((row) => row.status === "Review").length;
+
+      $("metrics").innerHTML = [
+        metric("Guards on duty", active, "Current active posts"),
+        metric("Overdue check-ins", overdueShifts, "Past the grace window"),
+        metric("Incidents", incidents, "IR or unusual activity"),
+        metric("Payroll review", review, "Rows needing approval")
+      ].join("");
+
+      $("syncBadge").textContent = state.online ? `Online - ${state.queue.length} queued` : `Offline - ${state.queue.length} queued`;
+      $("syncBadge").className = `pill ${state.online ? "good" : "warn"}`;
+
+      $("overdueBadge").textContent = overdueShifts ? `${overdueShifts} overdue` : "All clear";
+      $("overdueBadge").className = `pill ${overdueShifts ? "bad" : "good"}`;
+
+      $("shiftBoard").innerHTML = state.shifts.map((shift) => {
+        const guard = getGuard(shift.guardId);
+        const cs = checkinState(shift);
+        let tone = "good", label = shift.finished ? "Finished" : "On duty";
+        if (!shift.finished && cs.kind === "overdue") { tone = "bad"; label = `Overdue ${Math.abs(cs.minutesLeft)}m`; }
+        else if (!shift.finished && cs.kind === "due") { tone = "warn"; label = `Due in ${cs.minutesLeft}m`; }
+        return `
+          <article class="card card-row">
+            <div>
+              <strong>${esc(guard.name)}</strong>
+              <div class="muted">${esc(shift.site)} - ${esc(shift.post)}</div>
+            </div>
+            <div>
+              <span class="tag ${tone}">${esc(label)}</span>
+              <span class="muted">Last check-in: ${esc(clock(shift.lastCheckIn))}</span>
+            </div>
+            <button class="secondary" type="button" data-mark-ok="${esc(shift.id)}">Mark OK</button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-mark-ok]").forEach((button) => {
+        button.addEventListener("click", () => markShiftOk(button.dataset.markOk));
+      });
+
+      const items = [
+        ...state.shifts.filter((s) => !s.finished && checkinState(s).kind === "overdue").map((s) => {
+          const cs = checkinState(s);
+          return { cls: "alert", tone: "bad", type: "Overdue check-in", detail: `${getGuard(s.guardId).name} at ${s.site} - ${Math.abs(cs.minutesLeft)} min past the ${s.policyMinutes}-min window` };
+        }),
+        ...state.entries.filter((entry) => entry.incident && !entry.finalized).map((entry) => {
+          const shift = getShift(entry.shiftId);
+          return { cls: "warnline", tone: "warn", type: "Incident report", detail: `${shift.site}: ${entry.note}` };
+        })
+      ];
+
+      $("attentionList").innerHTML = items.length ? items.map((item) => `
+        <article class="card ${item.cls}">
+          <span class="tag ${item.tone}">${esc(item.type)}</span>
+          <strong>${esc(item.detail)}</strong>
+        </article>
+      `).join("") : `<div class="empty">Nothing needs attention right now.</div>`;
+    }
+
+    function renderActivityLog() {
+      const target = $("liveFeed");
+      if (!target) return;
+      const logs = (state.activityLog || []).slice(0, 8);
+      target.innerHTML = logs.length ? logs.map((item) => `
+        <article class="feed-item">
+          <span class="feed-dot"></span>
+          <div>
+            <strong>${esc(item.title)}</strong>
+            <span class="muted">${esc(item.detail)}</span>
+          </div>
+          <span class="muted">${esc(clock(item.at))}</span>
+        </article>
+      `).join("") : `<div class="empty">No actions yet. Try the Guard App check-in or save a DAR/IR note.</div>`;
+    }
+
+    function renderGuard() {
+      const shift = getShift(state.selectedShiftId);
+      const guard = getGuard(shift.guardId);
+      const cs = checkinState(shift);
+
+      $("phoneBadge").textContent = state.online ? "Online" : "Offline";
+      $("phoneBadge").className = `pill ${state.online ? "good" : "warn"}`;
+      $("currentShiftTitle").textContent = `${guard.name} - ${shift.site}`;
+      $("currentShiftMeta").textContent = `${shift.post}, ${shift.start} to ${shift.end}. Check in every ${shift.policyMinutes} min.`;
+
+      // Big check-in button reflects how close we are to the window.
+      const btn = $("checkInNow");
+      btn.classList.remove("due", "overdue");
+      if (shift.finished) {
+        btn.textContent = "Shift finished";
+        btn.disabled = true;
+      } else {
+        btn.disabled = false;
+        if (cs.kind === "overdue") { btn.classList.add("overdue"); btn.textContent = `Check in now - ${Math.abs(cs.minutesLeft)} min overdue`; }
+        else if (cs.kind === "due") { btn.classList.add("due"); btn.textContent = `Check in - due in ${cs.minutesLeft} min`; }
+        else { btn.textContent = `Check in: everything is normal (next in ${cs.minutesLeft} min)`; }
+      }
+
+      // Recent check-in windows for this shift.
+      const windows = state.checkins
+        .filter((c) => c.shiftId === shift.id)
+        .slice(-5)
+        .reverse();
+      $("checkinWindows").innerHTML = windows.length ? windows.map((c) => {
+        const tone = c.status === "Received" ? "good" : "bad";
+        const when = c.status === "Received" ? clock(c.receivedAt) : "missed";
+        return `<div class="win"><span>${esc(clock(c.expectedAt))} window</span><span class="tag ${tone}">${esc(c.status)} ${esc(when)}</span></div>`;
+      }).join("") : `<div class="muted" style="font-size:13px;">No check-in windows yet.</div>`;
+
+      const entries = state.entries.filter((entry) => entry.shiftId === shift.id).slice().reverse();
+      $("guardTimeline").innerHTML = entries.length ? entries.map((entry) => `
+        <article class="card">
+          <span class="tag ${entry.incident ? "bad" : "good"}">${entry.incident ? "Incident" : entry.reportType}</span>
+          <strong>${esc(labelFor(entry.type))}</strong>
+          <div class="muted">${esc(entry.time)} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+          <p>${esc(entry.note)}</p>
+        </article>
+      `).join("") : `<div class="empty">No notes saved for this shift yet.</div>`;
+    }
+
+    function renderPayroll() {
+      const role = currentRole();
+      const period = state.period;
+      $("periodLabel").textContent = period.label;
+      $("periodStatus").textContent = period.status;
+      $("periodStatus").className = `tag ${period.status === "Closed" ? "bad" : "good"}`;
+
+      // Role-scoped row visibility.
+      let rows = state.payroll;
+      if (role.canViewPayroll === "own" && role.asGuard) {
+        rows = rows.filter((r) => getShift(r.shiftId).guardId === role.asGuard);
+      }
+
+      let totReg = 0, totOt = 0, totIncidents = 0, totPay = 0;
+      $("payrollRows").innerHTML = rows.map((row) => {
+        const shift = getShift(row.shiftId);
+        const guard = getGuard(shift.guardId);
+        const received = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Received").length;
+        const missed = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Missed").length;
+        const incidents = state.entries.filter((e) => e.shiftId === shift.id && e.incident).length;
+        const { reg, ot } = effectiveHours(row, shift);
+        totReg += reg; totOt += ot; totIncidents += incidents;
+        totPay += reg * guard.rate + ot * guard.rate * 1.5;
+
+        const tone = row.status === "Approved" ? "good" : row.status === "Review" || row.status === "Rejected" ? "bad" : "warn";
+        const canAct = role.canApprovePayroll && !row.locked && period.status !== "Closed";
+        const actions = canAct ? `
+          <div class="row-actions">
+            <button class="mini ok" type="button" data-approve="${esc(shift.id)}">Approve</button>
+            <button class="mini no" type="button" data-reject="${esc(shift.id)}">Reject</button>
+          </div>` : `<span class="muted" style="font-size:12px;">${row.locked ? "Locked" : "View only"}</span>`;
+
+        return `
+          <tr class="${row.locked ? "locked" : ""}">
+            <td>${esc(guard.name)}<br><span class="muted">${esc(guard.employee)} - $${guard.rate.toFixed(2)}/hr</span></td>
+            <td>${esc(shift.site)}</td>
+            <td>${esc(shift.start)}-${esc(shift.end)}</td>
+            <td class="num">${reg.toFixed(2)}</td>
+            <td class="num">${ot.toFixed(2)}</td>
+            <td class="num">${received}</td>
+            <td class="num">${missed}</td>
+            <td class="num">${incidents}</td>
+            <td><span class="tag ${tone}">${esc(row.status)}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join("");
+
+      $("periodTotals").innerHTML = `
+        <div><strong>${totReg.toFixed(2)}</strong>Regular hrs</div>
+        <div><strong>${totOt.toFixed(2)}</strong>Overtime hrs</div>
+        <div><strong>${totIncidents}</strong>Incidents</div>
+        <div><strong>$${totPay.toFixed(2)}</strong>Est. gross pay</div>
+      `;
+
+      document.querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", () => setRowStatus(b.dataset.approve, "Approved")));
+      document.querySelectorAll("[data-reject]").forEach((b) => b.addEventListener("click", () => setRowStatus(b.dataset.reject, "Rejected")));
+
+      // Top-bar payroll controls respect role + period lock.
+      const locked = period.status === "Closed";
+      $("approveReady").disabled = !role.canApprovePayroll || locked;
+      $("closePeriod").disabled = !role.canClosePeriod || locked;
+      $("closePeriod").textContent = locked ? "Period closed" : "Close period";
+    }
+
+    function renderReports() {
+      const reports = state.entries.slice().reverse();
+      $("reportList").innerHTML = reports.map((entry) => {
+        const shift = getShift(entry.shiftId);
+        const guard = getGuard(shift.guardId);
+        return `
+          <article class="card">
+            <span class="tag ${entry.incident ? "bad" : "good"}">${esc(entry.reportType)}</span>
+            <strong>${esc(guard.name)} - ${esc(shift.site)}</strong>
+            <div class="muted">${esc(entry.time)} - ${esc(labelFor(entry.type))} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+            <p>${esc(entry.note)}</p>
+            <button class="secondary" type="button" data-preview="${esc(entry.id)}">Preview</button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-preview]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedReportId = button.dataset.preview;
+          saveState();
+          renderReports();
+        });
+      });
+
+      const selected = state.entries.find((entry) => entry.id === state.selectedReportId) || state.entries[0];
+      const shift = getShift(selected.shiftId);
+      const guard = getGuard(shift.guardId);
+      $("reportPreview").innerHTML = `
+        <header>
+          <div>
+            <p class="eyebrow">${esc(selected.reportType)} report</p>
+            <h2>${esc(labelFor(selected.type))}</h2>
+          </div>
+          <div class="muted">${esc(selected.time)}<br>${selected.finalized ? "Finalized and locked" : "Draft"}</div>
+        </header>
+        <p><strong>Guard:</strong> ${esc(guard.name)} (${esc(guard.employee)})</p>
+        <p><strong>Site:</strong> ${esc(shift.site)} - ${esc(shift.post)}</p>
+        <p><strong>Shift:</strong> ${esc(shift.start)} to ${esc(shift.end)}</p>
+        <p><strong>Report type:</strong> ${esc(selected.reportType)}</p>
+        <p><strong>Notes:</strong></p>
+        <p>${esc(selected.note)}</p>
+      `;
+    }
+
+    function metric(label, value, detail) {
+      return `<div class="metric"><span>${label}</span><strong>${value}</strong><div class="muted">${detail}</div></div>`;
+    }
+
+    // ---- Actions -----------------------------------------------------------
+    function checkInNow() {
+      const shift = getShift(state.selectedShiftId);
+      if (shift.finished) return;
+      const policy = shift.policyMinutes || 60;
+      const expectedWindow = shift.lastCheckIn + policy * MS_MIN;
+      shift.status = "On duty";
+      shift.lastCheckIn = Date.now();
+      state.checkins.push({ id: crypto.randomUUID(), shiftId: shift.id, expectedAt: expectedWindow, receivedAt: Date.now(), status: "Received" });
+      queueAction("check-in saved", shift.id);
+      recordActivity("Guard check-in received", `${getGuard(shift.guardId).name} checked in at ${shift.site}. Admin status and payroll check-in count updated.`);
+      saveState();
+      render();
+    }
+
+    function markShiftOk(shiftId) {
+      const prev = state.selectedShiftId;
+      state.selectedShiftId = shiftId;
+      checkInNow();
+      state.selectedShiftId = prev;
+      hydrateShiftSelect();
+      saveState();
+      render();
+    }
+
+    function saveEntry(event) {
+      event.preventDefault();
+      const shift = getShift($("shiftSelect").value);
+      state.selectedShiftId = shift.id;
+      const type = $("entryType").value;
+      const note = $("entryNote").value.trim();
+      if (incidentTypes.has(type) && !note) {
+        alert("Please type a note for anything unusual or incident-related.");
+        return;
+      }
+      const entry = {
+        id: crypto.randomUUID(),
+        shiftId: shift.id,
+        reportType: $("reportType").value,
+        type,
+        note: note || "Tour complete. All normal.",
+        time: nowTime(),
+        incident: incidentTypes.has(type) || $("reportType").value === "IR",
+        finalized: false
+      };
+      state.entries.push(entry);
+      state.selectedReportId = entry.id;
+      const payroll = state.payroll.find((row) => row.shiftId === shift.id);
+      if (payroll && entry.incident && !payroll.locked) payroll.status = "Review";
+      queueAction("report note saved", entry.id);
+      recordActivity(
+        `${entry.reportType} note saved`,
+        `${getGuard(shift.guardId).name} added "${labelFor(entry.type)}" at ${shift.site}. Reports updated${entry.incident ? " and payroll moved to review." : "."}`
+      );
+      $("entryNote").value = "";
+      saveState();
+      render();
+    }
+
+    function cleanNote() {
+      const note = $("entryNote").value.trim();
+      if (!note) return;
+      $("entryNote").value = note.replace(/\s+/g, " ").replace(/\bi\b/g, "I");
+    }
+
+    function finishShift() {
+      const shift = getShift($("shiftSelect").value);
+      shift.finished = true;
+      shift.status = "Finished";
+      const payroll = state.payroll.find((row) => row.shiftId === shift.id);
+      if (payroll && !payroll.locked && payroll.status !== "Review") payroll.status = "Ready";
+      queueAction("shift finished", shift.id);
+      recordActivity("Shift finished", `${getGuard(shift.guardId).name}'s ${shift.site} shift was closed and payroll is ready for review.`);
+      saveState();
+      render();
+    }
+
+    function setRowStatus(shiftId, status) {
+      const role = currentRole();
+      if (!role.canApprovePayroll) { alert("Your role cannot approve payroll."); return; }
+      if (state.period.status === "Closed") { alert("The pay period is closed."); return; }
+      const row = state.payroll.find((r) => r.shiftId === shiftId);
+      if (!row || row.locked) return;
+      row.status = status;
+      recordActivity(`Payroll ${status.toLowerCase()}`, `${getGuard(getShift(shiftId).guardId).name}'s payroll row was marked ${status}.`);
+      saveState();
+      render();
+    }
+
+    function approveReadyPayroll() {
+      const role = currentRole();
+      if (!role.canApprovePayroll || state.period.status === "Closed") return;
+      state.payroll.forEach((row) => {
+        if (row.status === "Ready" && !row.locked) row.status = "Approved";
+      });
+      recordActivity("Payroll rows approved", "All ready payroll rows were approved for the current pay period.");
+      saveState();
+      render();
+    }
+
+    function closePeriod() {
+      const role = currentRole();
+      if (!role.canClosePeriod) { alert("Only a super admin can close the period."); return; }
+      const unresolved = state.payroll.filter((r) => r.status !== "Approved" && r.status !== "Rejected");
+      if (unresolved.length && !confirm(`${unresolved.length} row(s) are not approved or rejected yet. Close the period anyway? This locks every row.`)) {
+        return;
+      }
+      state.period.status = "Closed";
+      state.payroll.forEach((row) => { row.locked = true; });
+      queueAction("payroll period closed", state.period.id);
+      recordActivity("Pay period closed", "Payroll rows are now locked for this period.");
+      saveState();
+      render();
+    }
+
+    function finalizeSelectedReport() {
+      const report = state.entries.find((entry) => entry.id === state.selectedReportId);
+      if (!report) return;
+      report.finalized = true;
+      queueAction("report finalized", report.id);
+      recordActivity("Report finalized", `${report.reportType} ${report.id} is locked and ready for printing/export.`);
+      saveState();
+      render();
+    }
+
+    function queueAction(kind, id) {
+      if (!state.online) {
+        state.queue.push({ id: crypto.randomUUID(), kind, entity: id, at: nowTime() });
+      }
+    }
+
+    function recordActivity(title, detail) {
+      if (!state.activityLog) state.activityLog = [];
+      state.activityLog.unshift({
+        id: crypto.randomUUID(),
+        title,
+        detail,
+        at: Date.now()
+      });
+      state.activityLog = state.activityLog.slice(0, 20);
+      showToast(title, detail);
+    }
+
+    function showToast(title, detail) {
+      const toast = $("toast");
+      if (!toast) return;
+      toast.innerHTML = `<strong>${esc(title)}</strong><span class="muted">${esc(detail)}</span>`;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 4200);
+    }
+
+    function exportPayrollCsv() {
+      const rows = [["guard", "employee_id", "rate", "site", "shift", "reg_hours", "ot_hours", "checkins", "missed", "incidents", "status", "period", "period_status"]];
+      state.payroll.forEach((row) => {
+        const shift = getShift(row.shiftId);
+        const guard = getGuard(shift.guardId);
+        const received = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Received").length;
+        const missed = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Missed").length;
+        const incidents = state.entries.filter((e) => e.shiftId === shift.id && e.incident).length;
+        const { reg, ot } = effectiveHours(row, shift);
+        rows.push([guard.name, guard.employee, guard.rate.toFixed(2), shift.site, `${shift.start}-${shift.end}`, reg.toFixed(2), ot.toFixed(2), received, missed, incidents, row.status, state.period.label, state.period.status]);
+      });
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+      download("watchdesk-v2-payroll.csv", csv, "text/csv");
+    }
+
+    // ---- Helpers -----------------------------------------------------------
+    function getGuard(id) { return state.guards.find((guard) => guard.id === id) || state.guards[0]; }
+    function getShift(id) { return state.shifts.find((shift) => shift.id === id) || state.shifts[0]; }
+
+    function labelFor(type) {
+      return {
+        normal: "Tour complete, all normal",
+        unusual: "Something unusual",
+        fire: "Fire",
+        suspect: "Suspicious person",
+        theft: "Theft",
+        manual: "Other note"
+      }[type] || type;
+    }
+
+    function nowTime() {
+      return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+    function clock(ts) {
+      if (!ts) return "-";
+      return new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+
+    function download(name, content, type) {
+      const blob = new Blob([content], { type });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function esc(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>

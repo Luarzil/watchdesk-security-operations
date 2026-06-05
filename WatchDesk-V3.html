@@ -1,0 +1,1041 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WatchDesk V3 - Security Operations</title>
+  <style>
+    :root {
+      --bg: #edf3f7;
+      --surface: #ffffff;
+      --soft: #f7fafc;
+      --ink: #142033;
+      --muted: #627086;
+      --line: #d5dee8;
+      --blue: #1f5d8b;
+      --green: #23714e;
+      --red: #a13b36;
+      --gold: #bd8617;
+      --shadow: 0 18px 46px rgba(20, 32, 51, 0.11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .page {
+      width: min(1520px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+      font-size: clamp(34px, 5vw, 54px);
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 6px;
+      letter-spacing: 0;
+    }
+
+    .subhead,
+    .muted {
+      color: var(--muted);
+    }
+
+    .subhead {
+      margin-bottom: 0;
+      font-size: 16px;
+    }
+
+    .top-actions,
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary,
+    .secondary,
+    .danger {
+      min-height: 42px;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .primary {
+      background: var(--blue);
+      color: #ffffff;
+    }
+
+    .secondary {
+      background: #e8f0f7;
+      color: #1e4768;
+      border: 1px solid #c8d8e6;
+    }
+
+    .danger {
+      background: var(--red);
+      color: #ffffff;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      min-height: 48px;
+      border-radius: 8px;
+      background: #dfe9f2;
+      color: #34455b;
+      font-weight: 800;
+    }
+
+    .tab.active {
+      background: var(--ink);
+      color: #ffffff;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .metric,
+    .panel,
+    .phone {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      min-height: 112px;
+      padding: 16px;
+      border-left: 5px solid var(--blue);
+    }
+
+    .metric:nth-child(2) {
+      border-left-color: var(--green);
+    }
+
+    .metric:nth-child(3) {
+      border-left-color: var(--gold);
+    }
+
+    .metric:nth-child(4) {
+      border-left-color: var(--red);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric strong {
+      display: block;
+      margin: 8px 0 6px;
+      font-size: 34px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .two {
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.8fr);
+    }
+
+    .phone-grid {
+      grid-template-columns: minmax(320px, 430px) minmax(320px, 1fr);
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-head,
+    .phone-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stack,
+    .form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 13px;
+    }
+
+    .card-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.8fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pill,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 2px 9px;
+      background: #e8f0f7;
+      color: #1e4768;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .good {
+      background: #e6f4ec;
+      color: var(--green);
+    }
+
+    .warn {
+      background: #fff4d9;
+      color: #74500c;
+    }
+
+    .bad {
+      background: #fae9e6;
+      color: var(--red);
+    }
+
+    .phone {
+      border-radius: 18px;
+      background: #111827;
+      color: #ffffff;
+      padding: 14px;
+    }
+
+    .phone-head,
+    .shift-card,
+    .form {
+      border-radius: 8px;
+    }
+
+    .shift-card,
+    .form {
+      background: #ffffff;
+      color: var(--ink);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .shift-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .big-check {
+      width: 100%;
+      min-height: 88px;
+      border-radius: 8px;
+      background: var(--green);
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    select,
+    textarea,
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      min-height: 42px;
+      padding: 9px 10px;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 13px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .paper {
+      min-height: 440px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 18px;
+    }
+
+    .paper header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 16px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .two,
+      .phone-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        width: min(100% - 20px, 1520px);
+      }
+
+      .topbar,
+      .panel-head,
+      .card-row,
+      .top-actions,
+      .button-row {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+        flex-direction: column;
+      }
+
+      .tabs,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .primary,
+      .secondary,
+      .danger {
+        width: 100%;
+      }
+    }
+
+    @media print {
+      body {
+        background: #ffffff;
+      }
+
+      .topbar,
+      .tabs,
+      .panel:not(.print-panel),
+      .panel-head button {
+        display: none !important;
+      }
+
+      .page,
+      .screen,
+      .screen.active {
+        display: block;
+        width: 100%;
+        padding: 0;
+      }
+
+      .print-panel,
+      .paper {
+        box-shadow: none;
+        border: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Security guard app preview</p>
+        <h1>WatchDesk V3</h1>
+        <p class="subhead">Simple office tracking, guard check-ins, payroll, and DAR/IR reports.</p>
+      </div>
+      <div class="top-actions">
+        <button id="toggleOnline" class="secondary" type="button">Go offline</button>
+        <button id="resetDemo" class="secondary" type="button">Reset demo</button>
+        <button id="exportJson" class="primary" type="button">Export data</button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Main screens">
+      <button class="tab active" type="button" data-screen="admin">Admin Dashboard</button>
+      <button class="tab" type="button" data-screen="guard">Guard App</button>
+      <button class="tab" type="button" data-screen="payroll">Payroll</button>
+      <button class="tab" type="button" data-screen="reports">Reports</button>
+    </nav>
+
+    <main>
+      <section id="adminScreen" class="screen active">
+        <div class="metrics" id="metrics"></div>
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>Guards and posts</h2>
+              </div>
+              <span id="syncBadge" class="pill"></span>
+            </div>
+            <div id="shiftBoard" class="stack"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Needs attention</p>
+                <h2>Supervisor queue</h2>
+              </div>
+            </div>
+            <div id="attentionList" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="guardScreen" class="screen">
+        <div class="grid phone-grid">
+          <section class="phone">
+            <div class="phone-head">
+              <strong>Guard phone</strong>
+              <span id="phoneBadge" class="pill good">Online</span>
+            </div>
+
+            <div class="shift-card">
+              <p class="eyebrow">Current shift</p>
+              <h2 id="currentShiftTitle"></h2>
+              <p id="currentShiftMeta" class="muted"></p>
+            </div>
+
+            <button id="checkInNow" class="big-check" type="button">Check in: everything is normal</button>
+
+            <form id="entryForm" class="form">
+              <label>
+                Shift
+                <select id="shiftSelect"></select>
+              </label>
+              <label>
+                Report
+                <select id="reportType">
+                  <option value="DAR">DAR - Daily activity</option>
+                  <option value="IR">IR - Incident report</option>
+                </select>
+              </label>
+              <label>
+                Activity
+                <select id="entryType">
+                  <option value="normal">Tour complete, all normal</option>
+                  <option value="unusual">Something unusual</option>
+                  <option value="fire">Fire</option>
+                  <option value="suspect">Suspicious person</option>
+                  <option value="theft">Theft</option>
+                  <option value="manual">Other note</option>
+                </select>
+              </label>
+              <label>
+                Notes
+                <textarea id="entryNote" placeholder="Type the guard's note here."></textarea>
+              </label>
+              <div class="button-row">
+                <button id="cleanNote" class="secondary" type="button">Clean note</button>
+                <button class="primary" type="submit">Save note</button>
+              </div>
+            </form>
+
+            <button id="finishShift" class="danger" type="button">Finish selected shift</button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Saved on this shift</p>
+                <h2>Guard timeline</h2>
+              </div>
+            </div>
+            <div id="guardTimeline" class="stack"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="payrollScreen" class="screen">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Pay period</p>
+              <h2>Payroll review</h2>
+            </div>
+            <div class="button-row">
+              <button id="approveReady" class="secondary" type="button">Approve ready rows</button>
+              <button id="exportPayroll" class="primary" type="button">Export payroll CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Guard</th>
+                  <th>Site</th>
+                  <th>Shift</th>
+                  <th>Hours</th>
+                  <th>Check-ins</th>
+                  <th>Incidents</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="payrollRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="reportsScreen" class="screen">
+        <div class="grid two">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Paper replacement</p>
+                <h2>DAR / IR records</h2>
+              </div>
+              <button id="finalizeReport" class="secondary" type="button">Finalize selected</button>
+            </div>
+            <div id="reportList" class="stack"></div>
+          </section>
+
+          <section class="panel print-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Printable record</p>
+                <h2>Report preview</h2>
+              </div>
+              <button id="printReport" class="secondary" type="button">Print</button>
+            </div>
+            <article id="reportPreview" class="paper"></article>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "watchdesk-v3-state";
+    const incidentTypes = new Set(["unusual", "fire", "suspect", "theft"]);
+
+    const starter = {
+      screen: "admin",
+      online: true,
+      selectedShiftId: "shift-1",
+      selectedReportId: "entry-2",
+      queue: [],
+      guards: [
+        { id: "guard-1", name: "Jordan Miles", employee: "SG-1007" },
+        { id: "guard-2", name: "Riley Chen", employee: "SG-1014" },
+        { id: "guard-3", name: "Avery Stone", employee: "SG-1022" }
+      ],
+      shifts: [
+        { id: "shift-1", guardId: "guard-1", site: "Warehouse North", post: "North gate", start: "8:00 AM", end: "4:00 PM", hours: 8, status: "On duty", lastCheckIn: "10:02 AM", missed: false, finished: false },
+        { id: "shift-2", guardId: "guard-2", site: "Medical Plaza", post: "Main lobby", start: "7:00 AM", end: "3:00 PM", hours: 8, status: "Needs check-in", lastCheckIn: "8:39 AM", missed: true, finished: false },
+        { id: "shift-3", guardId: "guard-3", site: "Transit Lot C", post: "Vehicle patrol", start: "6:00 AM", end: "2:00 PM", hours: 8, status: "On duty", lastCheckIn: "10:00 AM", missed: false, finished: false }
+      ],
+      checkins: [
+        { id: "check-1", shiftId: "shift-1", expected: "9:00 AM", received: "9:01 AM", status: "Received" },
+        { id: "check-2", shiftId: "shift-1", expected: "10:00 AM", received: "10:02 AM", status: "Received" },
+        { id: "check-3", shiftId: "shift-2", expected: "9:00 AM", received: "", status: "Missed" },
+        { id: "check-4", shiftId: "shift-3", expected: "10:00 AM", received: "10:00 AM", status: "Received" }
+      ],
+      entries: [
+        { id: "entry-1", shiftId: "shift-1", reportType: "DAR", type: "normal", note: "North entrance, loading dock, and camera room checked. All normal.", time: "9:00 AM", incident: false, finalized: false },
+        { id: "entry-2", shiftId: "shift-2", reportType: "IR", type: "suspect", note: "Unknown person tried to enter staff corridor without a visitor badge.", time: "8:39 AM", incident: true, finalized: false },
+        { id: "entry-3", shiftId: "shift-3", reportType: "DAR", type: "normal", note: "Vehicle patrol complete. No damage or unlocked vehicles found.", time: "10:00 AM", incident: false, finalized: true }
+      ],
+      payroll: [
+        { shiftId: "shift-1", status: "Ready" },
+        { shiftId: "shift-2", status: "Review" },
+        { shiftId: "shift-3", status: "Ready" }
+      ]
+    };
+
+    let state = loadState();
+    const $ = (id) => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      bindEvents();
+      hydrateShiftSelect();
+      render();
+    });
+
+    function bindEvents() {
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.screen = button.dataset.screen;
+          saveState();
+          render();
+        });
+      });
+
+      $("toggleOnline").addEventListener("click", () => {
+        state.online = !state.online;
+        if (state.online) state.queue = [];
+        saveState();
+        render();
+      });
+      $("resetDemo").addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        state = structuredClone(starter);
+        hydrateShiftSelect();
+        render();
+      });
+      $("exportJson").addEventListener("click", () => download("watchdesk-v3-data.json", JSON.stringify(state, null, 2), "application/json"));
+      $("shiftSelect").addEventListener("change", () => {
+        state.selectedShiftId = $("shiftSelect").value;
+        saveState();
+        render();
+      });
+      $("checkInNow").addEventListener("click", checkInNow);
+      $("entryForm").addEventListener("submit", saveEntry);
+      $("cleanNote").addEventListener("click", cleanNote);
+      $("finishShift").addEventListener("click", finishShift);
+      $("approveReady").addEventListener("click", approveReadyPayroll);
+      $("exportPayroll").addEventListener("click", exportPayrollCsv);
+      $("finalizeReport").addEventListener("click", finalizeSelectedReport);
+      $("printReport").addEventListener("click", () => window.print());
+    }
+
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || structuredClone(starter);
+      } catch {
+        return structuredClone(starter);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function hydrateShiftSelect() {
+      $("shiftSelect").innerHTML = state.shifts.map((shift) => {
+        const guard = getGuard(shift.guardId);
+        return `<option value="${esc(shift.id)}">${esc(guard.name)} - ${esc(shift.site)}</option>`;
+      }).join("");
+      $("shiftSelect").value = state.selectedShiftId;
+    }
+
+    function render() {
+      document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.screen === state.screen));
+      document.querySelectorAll(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === `${state.screen}Screen`));
+      $("toggleOnline").textContent = state.online ? "Go offline" : "Go online";
+      renderAdmin();
+      renderGuard();
+      renderPayroll();
+      renderReports();
+    }
+
+    function renderAdmin() {
+      const active = state.shifts.filter((shift) => !shift.finished).length;
+      const missed = state.checkins.filter((checkin) => checkin.status === "Missed").length;
+      const incidents = state.entries.filter((entry) => entry.incident).length;
+      const review = state.payroll.filter((row) => row.status === "Review").length;
+
+      $("metrics").innerHTML = [
+        metric("Guards on duty", active, "Current active posts"),
+        metric("Check-ins missed", missed, "Hourly updates not received"),
+        metric("Incidents", incidents, "IR or unusual activity"),
+        metric("Payroll review", review, "Rows needing approval")
+      ].join("");
+
+      $("syncBadge").textContent = state.online ? `Online - ${state.queue.length} queued` : `Offline - ${state.queue.length} queued`;
+      $("syncBadge").className = `pill ${state.online ? "good" : "warn"}`;
+
+      $("shiftBoard").innerHTML = state.shifts.map((shift) => {
+        const guard = getGuard(shift.guardId);
+        const tone = shift.finished ? "good" : shift.missed ? "bad" : "good";
+        return `
+          <article class="card card-row">
+            <div>
+              <strong>${esc(guard.name)}</strong>
+              <div class="muted">${esc(shift.site)} - ${esc(shift.post)}</div>
+            </div>
+            <div>
+              <span class="tag ${tone}">${esc(shift.finished ? "Finished" : shift.status)}</span>
+              <span class="muted">Last check-in: ${esc(shift.lastCheckIn)}</span>
+            </div>
+            <button class="secondary" type="button" data-mark-ok="${esc(shift.id)}">Mark OK</button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-mark-ok]").forEach((button) => {
+        button.addEventListener("click", () => markShiftOk(button.dataset.markOk));
+      });
+
+      const items = [
+        ...state.checkins.filter((checkin) => checkin.status === "Missed").map((checkin) => {
+          const shift = getShift(checkin.shiftId);
+          return { type: "Missed check-in", detail: `${getGuard(shift.guardId).name} at ${shift.site}`, tone: "bad" };
+        }),
+        ...state.entries.filter((entry) => entry.incident).map((entry) => {
+          const shift = getShift(entry.shiftId);
+          return { type: "Incident report", detail: `${shift.site}: ${entry.note}`, tone: "warn" };
+        })
+      ];
+
+      $("attentionList").innerHTML = items.length ? items.map((item) => `
+        <article class="card">
+          <span class="tag ${item.tone}">${esc(item.type)}</span>
+          <strong>${esc(item.detail)}</strong>
+        </article>
+      `).join("") : `<div class="empty">Nothing needs attention right now.</div>`;
+    }
+
+    function renderGuard() {
+      const shift = getShift(state.selectedShiftId);
+      const guard = getGuard(shift.guardId);
+      $("phoneBadge").textContent = state.online ? "Online" : "Offline";
+      $("phoneBadge").className = `pill ${state.online ? "good" : "warn"}`;
+      $("currentShiftTitle").textContent = `${guard.name} - ${shift.site}`;
+      $("currentShiftMeta").textContent = `${shift.post}, ${shift.start} to ${shift.end}. Last check-in: ${shift.lastCheckIn}.`;
+
+      const entries = state.entries.filter((entry) => entry.shiftId === shift.id).slice().reverse();
+      $("guardTimeline").innerHTML = entries.length ? entries.map((entry) => `
+        <article class="card">
+          <span class="tag ${entry.incident ? "bad" : "good"}">${entry.incident ? "Incident" : entry.reportType}</span>
+          <strong>${esc(labelFor(entry.type))}</strong>
+          <div class="muted">${esc(entry.time)} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+          <p>${esc(entry.note)}</p>
+        </article>
+      `).join("") : `<div class="empty">No notes saved for this shift yet.</div>`;
+    }
+
+    function renderPayroll() {
+      $("payrollRows").innerHTML = state.payroll.map((row) => {
+        const shift = getShift(row.shiftId);
+        const guard = getGuard(shift.guardId);
+        const checkins = state.checkins.filter((checkin) => checkin.shiftId === shift.id && checkin.status === "Received").length;
+        const incidents = state.entries.filter((entry) => entry.shiftId === shift.id && entry.incident).length;
+        const tone = row.status === "Approved" ? "good" : row.status === "Review" ? "bad" : "warn";
+        return `
+          <tr>
+            <td>${esc(guard.name)}<br><span class="muted">${esc(guard.employee)}</span></td>
+            <td>${esc(shift.site)}</td>
+            <td>${esc(shift.start)}-${esc(shift.end)}</td>
+            <td>${shift.hours.toFixed(2)}</td>
+            <td>${checkins}</td>
+            <td>${incidents}</td>
+            <td><span class="tag ${tone}">${esc(row.status)}</span></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderReports() {
+      const reports = state.entries.slice().reverse();
+      $("reportList").innerHTML = reports.map((entry) => {
+        const shift = getShift(entry.shiftId);
+        const guard = getGuard(shift.guardId);
+        return `
+          <article class="card">
+            <span class="tag ${entry.incident ? "bad" : "good"}">${esc(entry.reportType)}</span>
+            <strong>${esc(guard.name)} - ${esc(shift.site)}</strong>
+            <div class="muted">${esc(entry.time)} - ${esc(labelFor(entry.type))} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+            <p>${esc(entry.note)}</p>
+            <button class="secondary" type="button" data-preview="${esc(entry.id)}">Preview</button>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-preview]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedReportId = button.dataset.preview;
+          saveState();
+          renderReports();
+        });
+      });
+
+      const selected = state.entries.find((entry) => entry.id === state.selectedReportId) || state.entries[0];
+      const shift = getShift(selected.shiftId);
+      const guard = getGuard(shift.guardId);
+      $("reportPreview").innerHTML = `
+        <header>
+          <div>
+            <p class="eyebrow">${esc(selected.reportType)} report</p>
+            <h2>${esc(labelFor(selected.type))}</h2>
+          </div>
+          <div class="muted">${esc(selected.time)}<br>${selected.finalized ? "Finalized and locked" : "Draft"}</div>
+        </header>
+        <p><strong>Guard:</strong> ${esc(guard.name)} (${esc(guard.employee)})</p>
+        <p><strong>Site:</strong> ${esc(shift.site)} - ${esc(shift.post)}</p>
+        <p><strong>Shift:</strong> ${esc(shift.start)} to ${esc(shift.end)}</p>
+        <p><strong>Report type:</strong> ${esc(selected.reportType)}</p>
+        <p><strong>Notes:</strong></p>
+        <p>${esc(selected.note)}</p>
+      `;
+    }
+
+    function metric(label, value, detail) {
+      return `<div class="metric"><span>${label}</span><strong>${value}</strong><div class="muted">${detail}</div></div>`;
+    }
+
+    function checkInNow() {
+      const shift = getShift(state.selectedShiftId);
+      shift.status = "On duty";
+      shift.missed = false;
+      shift.lastCheckIn = nowTime();
+      state.checkins.push({ id: crypto.randomUUID(), shiftId: shift.id, expected: nowTime(), received: nowTime(), status: "Received" });
+      queueAction("check-in saved", shift.id);
+      saveState();
+      render();
+    }
+
+    function markShiftOk(shiftId) {
+      state.selectedShiftId = shiftId;
+      checkInNow();
+      hydrateShiftSelect();
+    }
+
+    function saveEntry(event) {
+      event.preventDefault();
+      const shift = getShift($("shiftSelect").value);
+      state.selectedShiftId = shift.id;
+      const type = $("entryType").value;
+      const note = $("entryNote").value.trim();
+      if (incidentTypes.has(type) && !note) {
+        alert("Please type a note for anything unusual or incident-related.");
+        return;
+      }
+      const entry = {
+        id: crypto.randomUUID(),
+        shiftId: shift.id,
+        reportType: $("reportType").value,
+        type,
+        note: note || "Tour complete. All normal.",
+        time: nowTime(),
+        incident: incidentTypes.has(type) || $("reportType").value === "IR",
+        finalized: false
+      };
+      state.entries.push(entry);
+      state.selectedReportId = entry.id;
+      const payroll = state.payroll.find((row) => row.shiftId === shift.id);
+      if (payroll && entry.incident) payroll.status = "Review";
+      queueAction("report note saved", entry.id);
+      $("entryNote").value = "";
+      saveState();
+      render();
+    }
+
+    function cleanNote() {
+      const note = $("entryNote").value.trim();
+      if (!note) return;
+      $("entryNote").value = note.replace(/\s+/g, " ").replace(/\bi\b/g, "I");
+    }
+
+    function finishShift() {
+      const shift = getShift($("shiftSelect").value);
+      shift.finished = true;
+      shift.missed = false;
+      shift.status = "Finished";
+      const payroll = state.payroll.find((row) => row.shiftId === shift.id);
+      if (payroll && payroll.status !== "Review") payroll.status = "Ready";
+      queueAction("shift finished", shift.id);
+      saveState();
+      render();
+    }
+
+    function approveReadyPayroll() {
+      state.payroll.forEach((row) => {
+        if (row.status === "Ready") row.status = "Approved";
+      });
+      saveState();
+      render();
+    }
+
+    function finalizeSelectedReport() {
+      const report = state.entries.find((entry) => entry.id === state.selectedReportId);
+      if (!report) return;
+      report.finalized = true;
+      queueAction("report finalized", report.id);
+      saveState();
+      render();
+    }
+
+    function queueAction(kind, id) {
+      if (!state.online) {
+        state.queue.push({ id: crypto.randomUUID(), kind, entity: id, at: nowTime() });
+      }
+    }
+
+    function exportPayrollCsv() {
+      const rows = [["guard", "employee_id", "site", "shift", "hours", "checkins", "incidents", "status"]];
+      state.payroll.forEach((row) => {
+        const shift = getShift(row.shiftId);
+        const guard = getGuard(shift.guardId);
+        const checkins = state.checkins.filter((checkin) => checkin.shiftId === shift.id && checkin.status === "Received").length;
+        const incidents = state.entries.filter((entry) => entry.shiftId === shift.id && entry.incident).length;
+        rows.push([guard.name, guard.employee, shift.site, `${shift.start}-${shift.end}`, shift.hours.toFixed(2), checkins, incidents, row.status]);
+      });
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
+      download("watchdesk-v3-payroll.csv", csv, "text/csv");
+    }
+
+    function getGuard(id) {
+      return state.guards.find((guard) => guard.id === id) || state.guards[0];
+    }
+
+    function getShift(id) {
+      return state.shifts.find((shift) => shift.id === id) || state.shifts[0];
+    }
+
+    function labelFor(type) {
+      return {
+        normal: "Tour complete, all normal",
+        unusual: "Something unusual",
+        fire: "Fire",
+        suspect: "Suspicious person",
+        theft: "Theft",
+        manual: "Other note"
+      }[type] || type;
+    }
+
+    function nowTime() {
+      return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+
+    function download(name, content, type) {
+      const blob = new Blob([content], { type });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function esc(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WatchDesk Simple V2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Simple security operations preview</p>
+      <h1>WatchDesk</h1>
+      <p class="subhead">One office dashboard. One guard phone workflow. No paper logbooks.</p>
+    </div>
+    <div class="header-actions">
+      <button id="resetDemo" class="secondary" type="button">Reset demo</button>
+      <button id="exportData" class="primary" type="button">Export demo data</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <nav class="tabs" aria-label="Preview sections">
+      <button class="tab active" type="button" data-screen="office">Office</button>
+      <button class="tab" type="button" data-screen="guard">Guard Phone</button>
+      <button class="tab" type="button" data-screen="payroll">Payroll</button>
+      <button class="tab" type="button" data-screen="reports">Reports</button>
+    </nav>
+
+    <section id="officeScreen" class="screen active-screen">
+      <div class="metrics" id="metrics"></div>
+
+      <div class="grid two">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2>Who is working?</h2>
+            </div>
+            <span class="pill">Live board</span>
+          </div>
+          <div id="shiftCards" class="stack"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Needs attention</p>
+              <h2>Supervisor queue</h2>
+            </div>
+          </div>
+          <div id="supervisorQueue" class="stack"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="guardScreen" class="screen">
+      <div class="grid phone-grid">
+        <section class="phone">
+          <div class="phone-top">
+            <strong>Guard App</strong>
+            <span id="phoneStatus" class="pill good">Online</span>
+          </div>
+
+          <div class="shift-summary">
+            <p class="eyebrow">Current shift</p>
+            <h2 id="phoneShiftTitle"></h2>
+            <p id="phoneShiftMeta"></p>
+          </div>
+
+          <button id="checkInNow" class="check-button" type="button">Check In: Everything Is OK</button>
+
+          <form id="entryForm" class="form">
+            <label>
+              Report type
+              <select id="reportType">
+                <option value="DAR">DAR - Daily activity</option>
+                <option value="IR">IR - Incident report</option>
+              </select>
+            </label>
+
+            <label>
+              What happened?
+              <select id="entryType">
+                <option value="normal">Tour complete, all normal</option>
+                <option value="unusual">Something unusual</option>
+                <option value="fire">Fire</option>
+                <option value="suspect">Suspicious person</option>
+                <option value="theft">Theft</option>
+                <option value="manual">Other note</option>
+              </select>
+            </label>
+
+            <label>
+              Notes
+              <textarea id="entryNote" placeholder="Type the guard's note here."></textarea>
+            </label>
+
+            <div class="button-row">
+              <button id="cleanNote" class="secondary" type="button">Clean note</button>
+              <button class="primary" type="submit">Save note</button>
+            </div>
+          </form>
+
+          <button id="finishShift" class="danger" type="button">Finish Shift</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Saved entries</p>
+              <h2>Guard timeline</h2>
+            </div>
+          </div>
+          <div id="guardTimeline" class="stack"></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="payrollScreen" class="screen">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Pay period</p>
+            <h2>Payroll review</h2>
+          </div>
+          <div class="button-row">
+            <button id="approvePayroll" class="secondary" type="button">Approve ready rows</button>
+            <button id="exportPayroll" class="primary" type="button">Export payroll CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Guard</th>
+                <th>Site</th>
+                <th>Shift</th>
+                <th>Hours</th>
+                <th>Incidents</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="payrollRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="reportsScreen" class="screen">
+      <div class="grid two">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">DAR / IR records</p>
+              <h2>Reports</h2>
+            </div>
+          </div>
+          <div id="reportList" class="stack"></div>
+        </section>
+
+        <section class="panel print-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Printable record</p>
+              <h2>Report preview</h2>
+            </div>
+            <button id="printReport" class="secondary" type="button">Print</button>
+          </div>
+          <article id="reportPreview" class="report-paper"></article>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
