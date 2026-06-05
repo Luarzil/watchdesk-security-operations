@@ -101,7 +101,7 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 8px;
       margin-bottom: 16px;
     }
@@ -390,12 +390,7 @@
     </div>
     <div id="toast" class="toast" aria-live="polite"></div>
 
-    <nav class="tabs" aria-label="Main screens">
-      <button class="tab active" type="button" data-screen="admin">Admin Dashboard</button>
-      <button class="tab" type="button" data-screen="guard">Guard App</button>
-      <button class="tab" type="button" data-screen="payroll">Payroll</button>
-      <button class="tab" type="button" data-screen="reports">Reports</button>
-    </nav>
+    <nav id="tabs" class="tabs" aria-label="Main screens"></nav>
 
     <main>
       <section id="adminScreen" class="screen active">
@@ -546,6 +541,20 @@
         </section>
       </section>
 
+      <section id="accountScreen" class="screen">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Account view</p>
+              <h2>Client account and billing</h2>
+            </div>
+            <span id="accountStatus" class="pill"></span>
+          </div>
+          <div class="metrics" id="accountMetrics"></div>
+          <div id="billingList" class="stack"></div>
+        </section>
+      </section>
+
       <section id="reportsScreen" class="screen">
         <div class="grid two">
           <section class="panel">
@@ -578,12 +587,126 @@
     const incidentTypes = new Set(["unusual", "fire", "suspect", "theft"]);
     const MS_MIN = 60000;
 
-    // ---- Roles: capability flags drive what each signed-in user can do ----
+    const SECTIONS = {
+      admin: "Admin Dashboard",
+      guard: "Guard App",
+      payroll: "Payroll",
+      reports: "Reports",
+      account: "Account"
+    };
+
+    // Central role model. Future Supabase auth/RLS can map membership.role_slug
+    // to these same permissions and section policies.
     const ROLES = {
-      UL:   { label: "UL - Field guard (Jordan Miles)", asGuard: "guard-1", canApprovePayroll: false, canClosePeriod: false, canViewPayroll: "own", note: "Field operator: own shift, check-ins, and reports only." },
-      CFSL: { label: "CFSL - Site supervisor", asGuard: null, canApprovePayroll: false, canClosePeriod: false, canViewPayroll: "site", note: "Site supervisor: monitors check-ins and triages incidents." },
-      CML:  { label: "CML - Operations manager", asGuard: null, canApprovePayroll: true, canClosePeriod: false, canViewPayroll: "org", note: "Operations manager: can approve and adjust payroll rows." },
-      SA:   { label: "SA - Super admin", asGuard: null, canApprovePayroll: true, canClosePeriod: true, canViewPayroll: "org", note: "Super admin: full access, including closing the pay period." }
+      UL: {
+        label: "UL - Field guard",
+        description: "Field guard: starts a shift, checks in, writes DAR/IR notes, and finishes their own shift.",
+        defaultSection: "guard",
+        sections: ["guard", "reports"],
+        dashboardCards: ["myShift", "myNextCheckIn", "myOpenReports", "myMissedCheckins"],
+        permissions: {
+          scope: "own_shift",
+          guardId: "guard-1",
+          canUseGuardApp: true,
+          canCreateReports: true,
+          canFinalizeReports: true,
+          canViewPayroll: "own",
+          canApprovePayroll: false,
+          canClosePeriod: false,
+          canManageBilling: false,
+          canViewAllReports: false
+        }
+      },
+      CFSL: {
+        label: "CFSL - Site supervisor",
+        description: "Site supervisor: monitors guards, missed check-ins, unviewed incidents, tour violations, and supervisor queue items.",
+        defaultSection: "admin",
+        sections: ["admin", "guard", "reports"],
+        dashboardCards: ["unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity"],
+        permissions: {
+          scope: "site",
+          canUseGuardApp: true,
+          canCreateReports: true,
+          canFinalizeReports: true,
+          canViewPayroll: "site",
+          canApprovePayroll: false,
+          canClosePeriod: false,
+          canManageBilling: false,
+          canViewAllReports: false
+        }
+      },
+      CML: {
+        label: "CML - Operations manager",
+        description: "Operations manager: reviews operations metrics, incident flow, missed check-ins, tour violations, payroll, and reports.",
+        defaultSection: "admin",
+        sections: ["admin", "payroll", "reports"],
+        dashboardCards: ["unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity"],
+        permissions: {
+          scope: "organization",
+          canUseGuardApp: false,
+          canCreateReports: false,
+          canFinalizeReports: true,
+          canViewPayroll: "org",
+          canApprovePayroll: true,
+          canClosePeriod: false,
+          canManageBilling: false,
+          canViewAllReports: true
+        }
+      },
+      CAL: {
+        label: "CAL - Client account lead",
+        description: "Client account lead: sees high-level account health, active users, IR trends, tour violations, and missed check-ins.",
+        defaultSection: "admin",
+        sections: ["admin", "payroll", "reports"],
+        dashboardCards: ["activeUsers", "irSevenDays", "tourViolationsSevenDays", "missedCheckinsSevenDays"],
+        permissions: {
+          scope: "client_account",
+          canUseGuardApp: false,
+          canCreateReports: false,
+          canFinalizeReports: true,
+          canViewPayroll: "org",
+          canApprovePayroll: true,
+          canClosePeriod: false,
+          canManageBilling: false,
+          canViewAllReports: true
+        }
+      },
+      ARUL: {
+        label: "ARUL - Account/billing user",
+        description: "Account/billing user: sees account status, activation date, locations, billing history, paid/unpaid state, and package placeholders.",
+        defaultSection: "account",
+        sections: ["account"],
+        dashboardCards: ["accountActiveUsers", "activationDate", "locations", "billingStatus", "packageStatus"],
+        permissions: {
+          scope: "account_billing",
+          canUseGuardApp: false,
+          canCreateReports: false,
+          canFinalizeReports: false,
+          canViewPayroll: "none",
+          canApprovePayroll: false,
+          canClosePeriod: false,
+          canManageBilling: true,
+          canViewAllReports: false
+        }
+      },
+      SA: {
+        label: "SA - Super admin",
+        description: "Super admin: sees all sections, all dashboard cards, and all prototype controls.",
+        defaultSection: "admin",
+        sections: ["admin", "guard", "payroll", "reports", "account"],
+        dashboardCards: ["activeUsers", "unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity", "irSevenDays", "accountActiveUsers", "billingStatus", "packageStatus"],
+        permissions: {
+          scope: "platform",
+          canUseGuardApp: true,
+          canCreateReports: true,
+          canFinalizeReports: true,
+          canViewPayroll: "org",
+          canApprovePayroll: true,
+          canClosePeriod: true,
+          canManageBilling: true,
+          canViewAllReports: true
+        }
+      }
     };
 
     // Build a fixed "today" base so the demo's clock math is stable across loads.
@@ -605,6 +728,19 @@
         selectedReportId: "entry-2",
         queue: [],
         period: { id: "period-1", label: "Pay period - this week", status: "Open" },
+        account: {
+          activationDate: "May 20, 2026",
+          packageName: "WatchDesk Pilot",
+          accountStatus: "Active",
+          packageStatus: "Pilot package - 12 seats",
+          paidStatus: "Paid",
+          locations: ["Warehouse North", "Medical Plaza", "Transit Lot C"],
+          recentBills: [
+            { id: "bill-1004", date: "Jun 1, 2026", amount: "$249.00", status: "Paid" },
+            { id: "bill-1003", date: "May 1, 2026", amount: "$249.00", status: "Paid" },
+            { id: "bill-1002", date: "Apr 1, 2026", amount: "$249.00", status: "Unpaid demo" }
+          ]
+        },
         activityLog: [
           { id: "log-1", title: "Demo ready", detail: "Guard actions will update admin, reports, and payroll from the same data.", at: now }
         ],
@@ -624,10 +760,13 @@
           { id: "check-3", shiftId: "shift-2", expectedAt: now - 35 * MS_MIN, receivedAt: null, status: "Missed" },
           { id: "check-4", shiftId: "shift-3", expectedAt: now - 5 * MS_MIN, receivedAt: now - 5 * MS_MIN, status: "Received" }
         ],
+        tourViolations: [
+          { id: "tour-1", shiftId: "shift-2", label: "Lobby tour missed expected window", at: now - 70 * MS_MIN, status: "Open" }
+        ],
         entries: [
-          { id: "entry-1", shiftId: "shift-1", reportType: "DAR", type: "normal", note: "North entrance, loading dock, and camera room checked. All normal.", time: "9:00 AM", incident: false, finalized: false },
-          { id: "entry-2", shiftId: "shift-2", reportType: "IR", type: "suspect", note: "Unknown person tried to enter staff corridor without a visitor badge.", time: "8:39 AM", incident: true, finalized: false },
-          { id: "entry-3", shiftId: "shift-3", reportType: "DAR", type: "normal", note: "Vehicle patrol complete. No damage or unlocked vehicles found.", time: "10:00 AM", incident: false, finalized: true }
+          { id: "entry-1", shiftId: "shift-1", reportType: "DAR", type: "normal", note: "North entrance, loading dock, and camera room checked. All normal.", time: "9:00 AM", incident: false, finalized: false, createdAt: now - 90 * MS_MIN, viewedAt: now - 80 * MS_MIN },
+          { id: "entry-2", shiftId: "shift-2", reportType: "IR", type: "suspect", note: "Unknown person tried to enter staff corridor without a visitor badge.", time: "8:39 AM", incident: true, finalized: false, createdAt: now - 75 * MS_MIN, viewedAt: null },
+          { id: "entry-3", shiftId: "shift-3", reportType: "DAR", type: "normal", note: "Vehicle patrol complete. No damage or unlocked vehicles found.", time: "10:00 AM", incident: false, finalized: true, createdAt: now - 15 * MS_MIN, viewedAt: now - 10 * MS_MIN }
         ],
         payroll: [
           { shiftId: "shift-1", status: "Ready", regHours: null, otHours: null, locked: false, note: "" },
@@ -722,26 +861,28 @@
       $("roleSelect").innerHTML = Object.entries(ROLES)
         .map(([key, r]) => `<option value="${key}">${esc(r.label)}</option>`)
         .join("");
+      if (!ROLES[state.role]) state.role = "SA";
       $("roleSelect").value = state.role || "SA";
     }
 
     function currentRole() { return ROLES[state.role] || ROLES.SA; }
 
     function bindEvents() {
-      document.querySelectorAll(".tab").forEach((button) => {
-        button.addEventListener("click", () => {
-          state.screen = button.dataset.screen;
-          saveState();
-          render();
-        });
+      $("tabs").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-screen]");
+        if (!button) return;
+        state.screen = button.dataset.screen;
+        saveState();
+        render();
       });
 
       $("roleSelect").addEventListener("change", () => {
         state.role = $("roleSelect").value;
         const r = currentRole();
+        state.screen = r.defaultSection;
         // If this role is a field guard, point the guard app at their shift.
-        if (r.asGuard) {
-          const sh = state.shifts.find((s) => s.guardId === r.asGuard);
+        if (r.permissions.guardId) {
+          const sh = state.shifts.find((s) => s.guardId === r.permissions.guardId);
           if (sh) state.selectedShiftId = sh.id;
         }
         saveState();
@@ -791,8 +932,22 @@
         if (!saved) return structuredClone(starter);
         // Guard against older shapes: ensure new fields exist.
         if (!saved.period) saved.period = structuredClone(starter.period);
-        if (!saved.role) saved.role = "SA";
+        if (!ROLES[saved.role]) saved.role = "SA";
+        saved.account = {
+          ...structuredClone(starter.account),
+          ...(saved.account || {}),
+          locations: (saved.account && saved.account.locations) || starter.account.locations,
+          recentBills: (saved.account && saved.account.recentBills) || starter.account.recentBills
+        };
         if (!saved.activityLog) saved.activityLog = structuredClone(starter.activityLog || []);
+        if (!saved.tourViolations) saved.tourViolations = structuredClone(starter.tourViolations || []);
+        if (!Array.isArray(saved.queue)) saved.queue = [];
+        if (!ROLES[saved.role].sections.includes(saved.screen)) saved.screen = ROLES[saved.role].defaultSection;
+        saved.entries = (saved.entries || []).map((entry, index) => ({
+          ...entry,
+          createdAt: entry.createdAt || Date.now() - (index + 1) * 15 * MS_MIN,
+          viewedAt: Object.prototype.hasOwnProperty.call(entry, "viewedAt") ? entry.viewedAt : (entry.reportType === "IR" ? null : Date.now())
+        }));
         return saved;
       } catch {
         return structuredClone(starter);
@@ -801,8 +956,26 @@
 
     function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
+    function visibleShiftsForRole(role = currentRole()) {
+      const guardId = role.permissions.guardId;
+      if (guardId && !role.permissions.canViewAllReports) {
+        return state.shifts.filter((shift) => shift.guardId === guardId);
+      }
+      return state.shifts;
+    }
+
+    function visibleEntriesForRole(role = currentRole()) {
+      const guardId = role.permissions.guardId;
+      if (role.permissions.canViewAllReports || !guardId) return state.entries;
+      return state.entries.filter((entry) => getShift(entry.shiftId).guardId === guardId);
+    }
+
     function hydrateShiftSelect() {
-      $("shiftSelect").innerHTML = state.shifts.map((shift) => {
+      const shifts = visibleShiftsForRole();
+      if (shifts.length && !shifts.some((shift) => shift.id === state.selectedShiftId)) {
+        state.selectedShiftId = shifts[0].id;
+      }
+      $("shiftSelect").innerHTML = shifts.map((shift) => {
         const guard = getGuard(shift.guardId);
         return `<option value="${esc(shift.id)}">${esc(guard.name)} - ${esc(shift.site)}</option>`;
       }).join("");
@@ -811,35 +984,39 @@
 
     function render() {
       const role = currentRole();
-      document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.screen === state.screen));
+      if (!role.sections.includes(state.screen)) state.screen = role.defaultSection;
+      hydrateShiftSelect();
+      renderTabs(role);
       document.querySelectorAll(".screen").forEach((screen) => screen.classList.toggle("active", screen.id === `${state.screen}Screen`));
       $("toggleOnline").textContent = state.online ? "Go offline" : "Go online";
-      $("roleNote").textContent = role.note;
-      renderAdmin();
-      renderGuard();
-      renderPayroll();
-      renderReports();
+      $("toggleOnline").disabled = !role.permissions.canUseGuardApp;
+      $("roleNote").textContent = role.description;
+      renderAdmin(role);
+      renderGuard(role);
+      renderPayroll(role);
+      renderReports(role);
+      renderAccount(role);
       renderActivityLog();
     }
 
-    function renderAdmin() {
-      const active = state.shifts.filter((shift) => !shift.finished).length;
-      const overdueShifts = state.shifts.filter((s) => !s.finished && checkinState(s).kind === "overdue").length;
-      const incidents = state.entries.filter((entry) => entry.incident).length;
-      const review = state.payroll.filter((row) => row.status === "Review").length;
+    function renderTabs(role) {
+      $("tabs").innerHTML = role.sections.map((section) => `
+        <button class="tab ${section === state.screen ? "active" : ""}" type="button" data-screen="${esc(section)}">
+          ${esc(SECTIONS[section] || section)}
+        </button>
+      `).join("");
+    }
 
-      $("metrics").innerHTML = [
-        metric("Guards on duty", active, "Current active posts"),
-        metric("Overdue check-ins", overdueShifts, "Past the grace window"),
-        metric("Incidents", incidents, "IR or unusual activity"),
-        metric("Payroll review", review, "Rows needing approval")
-      ].join("");
+    function renderAdmin(role) {
+      const queueItems = supervisorQueueItems();
+
+      $("metrics").innerHTML = role.dashboardCards.map(dashboardCard).join("");
 
       $("syncBadge").textContent = state.online ? `Online - ${state.queue.length} queued` : `Offline - ${state.queue.length} queued`;
       $("syncBadge").className = `pill ${state.online ? "good" : "warn"}`;
 
-      $("overdueBadge").textContent = overdueShifts ? `${overdueShifts} overdue` : "All clear";
-      $("overdueBadge").className = `pill ${overdueShifts ? "bad" : "good"}`;
+      $("overdueBadge").textContent = queueItems.length ? `${queueItems.length} item(s)` : "All clear";
+      $("overdueBadge").className = `pill ${queueItems.length ? "bad" : "good"}`;
 
       $("shiftBoard").innerHTML = state.shifts.map((shift) => {
         const guard = getGuard(shift.guardId);
@@ -857,7 +1034,7 @@
               <span class="tag ${tone}">${esc(label)}</span>
               <span class="muted">Last check-in: ${esc(clock(shift.lastCheckIn))}</span>
             </div>
-            <button class="secondary" type="button" data-mark-ok="${esc(shift.id)}">Mark OK</button>
+            ${role.permissions.canUseGuardApp ? `<button class="secondary" type="button" data-mark-ok="${esc(shift.id)}">Mark OK</button>` : `<span class="muted" style="font-size:12px;">View only</span>`}
           </article>
         `;
       }).join("");
@@ -870,6 +1047,10 @@
         ...state.shifts.filter((s) => !s.finished && checkinState(s).kind === "overdue").map((s) => {
           const cs = checkinState(s);
           return { cls: "alert", tone: "bad", type: "Overdue check-in", detail: `${getGuard(s.guardId).name} at ${s.site} - ${Math.abs(cs.minutesLeft)} min past the ${s.policyMinutes}-min window` };
+        }),
+        ...state.tourViolations.filter((item) => item.status !== "Closed").map((item) => {
+          const shift = getShift(item.shiftId);
+          return { cls: "warnline", tone: "warn", type: "Tour pattern violation", detail: `${shift.site}: ${item.label}` };
         }),
         ...state.entries.filter((entry) => entry.incident && !entry.finalized).map((entry) => {
           const shift = getShift(entry.shiftId);
@@ -901,7 +1082,7 @@
       `).join("") : `<div class="empty">No actions yet. Try the Guard App check-in or save a DAR/IR note.</div>`;
     }
 
-    function renderGuard() {
+    function renderGuard(role) {
       const shift = getShift(state.selectedShiftId);
       const guard = getGuard(shift.guardId);
       const cs = checkinState(shift);
@@ -914,7 +1095,10 @@
       // Big check-in button reflects how close we are to the window.
       const btn = $("checkInNow");
       btn.classList.remove("due", "overdue");
-      if (shift.finished) {
+      if (!role.permissions.canUseGuardApp) {
+        btn.textContent = "View only";
+        btn.disabled = true;
+      } else if (shift.finished) {
         btn.textContent = "Shift finished";
         btn.disabled = true;
       } else {
@@ -946,21 +1130,23 @@
       `).join("") : `<div class="empty">No notes saved for this shift yet.</div>`;
     }
 
-    function renderPayroll() {
-      const role = currentRole();
+    function renderPayroll(role) {
       const period = state.period;
+      const permission = role.permissions;
       $("periodLabel").textContent = period.label;
       $("periodStatus").textContent = period.status;
       $("periodStatus").className = `tag ${period.status === "Closed" ? "bad" : "good"}`;
 
       // Role-scoped row visibility.
       let rows = state.payroll;
-      if (role.canViewPayroll === "own" && role.asGuard) {
-        rows = rows.filter((r) => getShift(r.shiftId).guardId === role.asGuard);
+      if (permission.canViewPayroll === "none") {
+        rows = [];
+      } else if (permission.canViewPayroll === "own" && permission.guardId) {
+        rows = rows.filter((r) => getShift(r.shiftId).guardId === permission.guardId);
       }
 
       let totReg = 0, totOt = 0, totIncidents = 0, totPay = 0;
-      $("payrollRows").innerHTML = rows.map((row) => {
+      $("payrollRows").innerHTML = rows.length ? rows.map((row) => {
         const shift = getShift(row.shiftId);
         const guard = getGuard(shift.guardId);
         const received = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Received").length;
@@ -971,7 +1157,7 @@
         totPay += reg * guard.rate + ot * guard.rate * 1.5;
 
         const tone = row.status === "Approved" ? "good" : row.status === "Review" || row.status === "Rejected" ? "bad" : "warn";
-        const canAct = role.canApprovePayroll && !row.locked && period.status !== "Closed";
+        const canAct = permission.canApprovePayroll && !row.locked && period.status !== "Closed";
         const actions = canAct ? `
           <div class="row-actions">
             <button class="mini ok" type="button" data-approve="${esc(shift.id)}">Approve</button>
@@ -992,7 +1178,7 @@
             <td>${actions}</td>
           </tr>
         `;
-      }).join("");
+      }).join("") : `<tr><td colspan="10"><div class="empty">This role does not have payroll rows in the prototype.</div></td></tr>`;
 
       $("periodTotals").innerHTML = `
         <div><strong>${totReg.toFixed(2)}</strong>Regular hrs</div>
@@ -1006,38 +1192,52 @@
 
       // Top-bar payroll controls respect role + period lock.
       const locked = period.status === "Closed";
-      $("approveReady").disabled = !role.canApprovePayroll || locked;
-      $("closePeriod").disabled = !role.canClosePeriod || locked;
+      $("approveReady").disabled = !permission.canApprovePayroll || locked;
+      $("closePeriod").disabled = !permission.canClosePeriod || locked;
       $("closePeriod").textContent = locked ? "Period closed" : "Close period";
     }
 
-    function renderReports() {
-      const reports = state.entries.slice().reverse();
-      $("reportList").innerHTML = reports.map((entry) => {
+    function renderReports(role) {
+      const reports = visibleEntriesForRole(role).slice().reverse();
+      $("reportList").innerHTML = reports.length ? reports.map((entry) => {
         const shift = getShift(entry.shiftId);
         const guard = getGuard(shift.guardId);
+        const unread = entry.reportType === "IR" && !entry.viewedAt;
         return `
           <article class="card">
             <span class="tag ${entry.incident ? "bad" : "good"}">${esc(entry.reportType)}</span>
+            ${unread ? `<span class="tag warn">Unviewed</span>` : ""}
             <strong>${esc(guard.name)} - ${esc(shift.site)}</strong>
             <div class="muted">${esc(entry.time)} - ${esc(labelFor(entry.type))} - ${entry.finalized ? "Finalized" : "Draft"}</div>
             <p>${esc(entry.note)}</p>
             <button class="secondary" type="button" data-preview="${esc(entry.id)}">Preview</button>
           </article>
         `;
-      }).join("");
+      }).join("") : `<div class="empty">No reports are visible for this role.</div>`;
 
       document.querySelectorAll("[data-preview]").forEach((button) => {
         button.addEventListener("click", () => {
           state.selectedReportId = button.dataset.preview;
+          const entry = state.entries.find((item) => item.id === state.selectedReportId);
+          if (entry && entry.reportType === "IR" && !entry.viewedAt) {
+            entry.viewedAt = Date.now();
+            recordActivity("IR viewed", `${entry.id} was opened from the Reports screen. Unviewed IR count updated.`);
+          }
           saveState();
-          renderReports();
+          render();
         });
       });
 
-      const selected = state.entries.find((entry) => entry.id === state.selectedReportId) || state.entries[0];
+      const selected = reports.find((entry) => entry.id === state.selectedReportId) || reports[0];
+      if (!selected) {
+        $("reportPreview").innerHTML = `<div class="empty">Select a role with report access or create a new report from the Guard App.</div>`;
+        $("finalizeReport").disabled = true;
+        return;
+      }
+      state.selectedReportId = selected.id;
       const shift = getShift(selected.shiftId);
       const guard = getGuard(shift.guardId);
+      $("finalizeReport").disabled = !role.permissions.canFinalizeReports || selected.finalized;
       $("reportPreview").innerHTML = `
         <header>
           <div>
@@ -1055,12 +1255,116 @@
       `;
     }
 
+    function renderAccount(role) {
+      const account = state.account || starter.account;
+      const cards = role.sections.includes("account")
+        ? (role.dashboardCards.some((key) => key.startsWith("account") || key === "activationDate" || key === "locations" || key === "billingStatus" || key === "packageStatus")
+          ? role.dashboardCards
+          : ROLES.ARUL.dashboardCards)
+        : ROLES.ARUL.dashboardCards;
+
+      $("accountStatus").textContent = `${account.accountStatus} - ${account.paidStatus}`;
+      $("accountStatus").className = `pill ${account.paidStatus === "Paid" ? "good" : "warn"}`;
+      $("accountMetrics").innerHTML = cards.map(dashboardCard).join("");
+      $("billingList").innerHTML = `
+        <article class="card">
+          <span class="tag good">${esc(account.accountStatus)}</span>
+          <strong>${esc(account.packageName)}</strong>
+          <div class="muted">Package/account status placeholder: ${esc(account.packageStatus)}</div>
+          <div class="muted">Locations: ${esc(account.locations.join(", "))}</div>
+        </article>
+        ${(account.recentBills || []).map((bill) => `
+          <article class="card">
+            <span class="tag ${bill.status === "Paid" ? "good" : "warn"}">${esc(bill.status)}</span>
+            <strong>${esc(bill.id)} - ${esc(bill.amount)}</strong>
+            <div class="muted">${esc(bill.date)}</div>
+          </article>
+        `).join("")}
+      `;
+    }
+
     function metric(label, value, detail) {
       return `<div class="metric"><span>${label}</span><strong>${value}</strong><div class="muted">${detail}</div></div>`;
     }
 
+    function dashboardCard(key) {
+      const account = state.account || starter.account;
+      const totalIRs = state.entries.filter((entry) => entry.reportType === "IR");
+      const totalIRs7 = totalIRs.filter((entry) => isLast7Days(entry.createdAt));
+      const unviewedIRs7 = totalIRs7.filter((entry) => !entry.viewedAt);
+      const missed7 = state.checkins.filter((item) => item.status === "Missed" && isLast7Days(item.expectedAt)).length;
+      const tour7 = state.tourViolations.filter((item) => isLast7Days(item.at)).length;
+      const cardMap = {
+        myShift: () => {
+          const shift = myShiftForRole();
+          return metric("My shift", shift ? shift.site : "None", shift ? `${shift.post} - ${shift.finished ? "Finished" : "Active"}` : "No assigned shift");
+        },
+        myNextCheckIn: () => {
+          const shift = myShiftForRole();
+          const cs = shift ? checkinState(shift) : null;
+          const value = !shift || shift.finished ? "-" : `${cs.minutesLeft}m`;
+          return metric("Next check-in", value, shift ? `${shift.policyMinutes}-minute post policy` : "No active post");
+        },
+        myOpenReports: () => metric("My open reports", visibleEntriesForRole(currentRole()).filter((entry) => !entry.finalized).length, "Draft DAR/IR records"),
+        myMissedCheckins: () => {
+          const shift = myShiftForRole();
+          const count = shift ? state.checkins.filter((item) => item.shiftId === shift.id && item.status === "Missed").length : 0;
+          return metric("My missed check-ins", count, "Recorded missed windows");
+        },
+        activeUsers: () => metric("Active users", activeUsersCount(), "Guards currently on duty"),
+        unviewedIRs: () => metric("Unviewed IRs", unviewedIRCount(), "Incident reports awaiting review"),
+        missedCheckins: () => metric("Missed check-ins", missedCheckinsCount(), "Missed windows logged"),
+        tourViolations: () => metric("Tour violations", state.tourViolations.filter((item) => item.status !== "Closed").length, "Open tour pattern exceptions"),
+        supervisorQueue: () => metric("Supervisor queue", supervisorQueueItems().length, "Overdue, incident, and tour items"),
+        recentActivity: () => metric("Recent activity", (state.activityLog || []).length, "Guard actions feeding the dashboard"),
+        irSevenDays: () => metric("7-day IRs", `${unviewedIRs7.length}/${totalIRs7.length}`, "Unviewed / total over past 7 days"),
+        tourViolationsSevenDays: () => metric("7-day tour violations", tour7, "Tour pattern exceptions"),
+        missedCheckinsSevenDays: () => metric("7-day missed check-ins", missed7, "Missed check-in windows"),
+        accountActiveUsers: () => metric("Active users", state.guards.length, "Provisioned guard/admin users"),
+        activationDate: () => metric("Activation date", account.activationDate, "Account start date"),
+        locations: () => metric("Locations", account.locations.length, account.locations.join(", ")),
+        billingStatus: () => metric("Billing status", account.paidStatus, "Recent bill paid/unpaid state"),
+        packageStatus: () => metric("Package", account.packageName, account.packageStatus)
+      };
+      return (cardMap[key] || (() => metric(key, "-", "Role dashboard card placeholder")))();
+    }
+
+    function activeUsersCount() {
+      return new Set(state.shifts.filter((shift) => !shift.finished).map((shift) => shift.guardId)).size;
+    }
+
+    function unviewedIRCount() {
+      return state.entries.filter((entry) => entry.reportType === "IR" && !entry.viewedAt).length;
+    }
+
+    function missedCheckinsCount() {
+      return state.checkins.filter((item) => item.status === "Missed").length;
+    }
+
+    function supervisorQueueItems() {
+      return [
+        ...state.shifts.filter((shift) => !shift.finished && checkinState(shift).kind === "overdue"),
+        ...state.entries.filter((entry) => entry.incident && !entry.finalized),
+        ...state.tourViolations.filter((item) => item.status !== "Closed")
+      ];
+    }
+
+    function myShiftForRole(role = currentRole()) {
+      const guardId = role.permissions.guardId;
+      if (!guardId) return null;
+      return state.shifts.find((shift) => shift.guardId === guardId && !shift.finished)
+        || state.shifts.find((shift) => shift.guardId === guardId)
+        || null;
+    }
+
+    function isLast7Days(ts) {
+      if (!ts) return false;
+      return Date.now() - ts <= 7 * 24 * 60 * MS_MIN;
+    }
+
     // ---- Actions -----------------------------------------------------------
     function checkInNow() {
+      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot use guard actions."); return; }
       const shift = getShift(state.selectedShiftId);
       if (shift.finished) return;
       const policy = shift.policyMinutes || 60;
@@ -1075,6 +1379,7 @@
     }
 
     function markShiftOk(shiftId) {
+      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot mark a guard check-in."); return; }
       const prev = state.selectedShiftId;
       state.selectedShiftId = shiftId;
       checkInNow();
@@ -1086,6 +1391,10 @@
 
     function saveEntry(event) {
       event.preventDefault();
+      if (!currentRole().permissions.canCreateReports) {
+        alert("This role cannot create DAR/IR notes.");
+        return;
+      }
       const shift = getShift($("shiftSelect").value);
       state.selectedShiftId = shift.id;
       const type = $("entryType").value;
@@ -1102,9 +1411,20 @@
         note: note || "Tour complete. All normal.",
         time: nowTime(),
         incident: incidentTypes.has(type) || $("reportType").value === "IR",
-        finalized: false
+        finalized: false,
+        createdAt: Date.now(),
+        viewedAt: null
       };
       state.entries.push(entry);
+      if (type === "unusual") {
+        state.tourViolations.unshift({
+          id: crypto.randomUUID(),
+          shiftId: shift.id,
+          label: note || "Guard reported an unusual tour pattern.",
+          at: entry.createdAt,
+          status: "Open"
+        });
+      }
       state.selectedReportId = entry.id;
       const payroll = state.payroll.find((row) => row.shiftId === shift.id);
       if (payroll && entry.incident && !payroll.locked) payroll.status = "Review";
@@ -1125,6 +1445,7 @@
     }
 
     function finishShift() {
+      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot finish a guard shift."); return; }
       const shift = getShift($("shiftSelect").value);
       shift.finished = true;
       shift.status = "Finished";
@@ -1138,7 +1459,7 @@
 
     function setRowStatus(shiftId, status) {
       const role = currentRole();
-      if (!role.canApprovePayroll) { alert("Your role cannot approve payroll."); return; }
+      if (!role.permissions.canApprovePayroll) { alert("Your role cannot approve payroll."); return; }
       if (state.period.status === "Closed") { alert("The pay period is closed."); return; }
       const row = state.payroll.find((r) => r.shiftId === shiftId);
       if (!row || row.locked) return;
@@ -1150,7 +1471,7 @@
 
     function approveReadyPayroll() {
       const role = currentRole();
-      if (!role.canApprovePayroll || state.period.status === "Closed") return;
+      if (!role.permissions.canApprovePayroll || state.period.status === "Closed") return;
       state.payroll.forEach((row) => {
         if (row.status === "Ready" && !row.locked) row.status = "Approved";
       });
@@ -1161,7 +1482,7 @@
 
     function closePeriod() {
       const role = currentRole();
-      if (!role.canClosePeriod) { alert("Only a super admin can close the period."); return; }
+      if (!role.permissions.canClosePeriod) { alert("Only a super admin can close the period."); return; }
       const unresolved = state.payroll.filter((r) => r.status !== "Approved" && r.status !== "Rejected");
       if (unresolved.length && !confirm(`${unresolved.length} row(s) are not approved or rejected yet. Close the period anyway? This locks every row.`)) {
         return;
@@ -1175,7 +1496,9 @@
     }
 
     function finalizeSelectedReport() {
-      const report = state.entries.find((entry) => entry.id === state.selectedReportId);
+      const role = currentRole();
+      if (!role.permissions.canFinalizeReports) { alert("This role cannot finalize reports."); return; }
+      const report = visibleEntriesForRole(role).find((entry) => entry.id === state.selectedReportId);
       if (!report) return;
       report.finalized = true;
       queueAction("report finalized", report.id);
