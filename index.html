@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WatchDesk V2 - Security Operations</title>
+  <title>WatchDesk V2.1 - Patrick Review Ready</title>
   <style>
     :root {
       --bg: #edf3f7;
@@ -218,6 +218,59 @@
       background: #f1f5f9; color: var(--ink); font-size: 13px;
     }
 
+    .guard-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .action-tile {
+      min-height: 78px;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      border: 2px solid #d9e4ef;
+      padding: 14px;
+      text-align: left;
+      font-weight: 800;
+    }
+    .action-tile span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .action-tile.primary-choice { background: #eaf3fb; border-color: #b7d2e8; }
+    .action-tile.warn-choice { background: #fff7e6; border-color: #efd087; }
+
+    .flow-panel {
+      display: none;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .flow-panel.active { display: block; }
+    .flow-panel .form { padding: 0; margin: 0; box-shadow: none; border: 0; }
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .choice-card {
+      min-height: 92px;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+    .choice-card.good-choice { background: var(--green); }
+    .choice-card.bad-choice { background: var(--red); }
+
     .big-check {
       width: 100%;
       min-height: 88px;
@@ -260,6 +313,8 @@
     }
     th { color: var(--muted); font-size: 12px; text-transform: uppercase; }
     tbody tr.locked { background: #f4f7fa; color: var(--muted); }
+    tbody tr.clickable { cursor: pointer; }
+    tbody tr.selected { outline: 2px solid var(--blue); outline-offset: -2px; background: #eef6fc; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
 
     .period-head {
@@ -280,6 +335,26 @@
     .mini.ok { background: #e6f4ec; color: var(--green); border: 1px solid #bfe0cd; }
     .mini.no { background: #fae9e6; color: var(--red); border: 1px solid #e6c4c0; }
 
+    .detail-grid, .record-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .detail-cell, .record-cell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 10px;
+    }
+    .detail-cell span, .record-cell span {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
     .paper {
       min-height: 440px;
       border: 1px solid var(--line);
@@ -291,6 +366,27 @@
       display: flex; justify-content: space-between; gap: 12px;
       border-bottom: 2px solid var(--ink);
       margin-bottom: 14px; padding-bottom: 12px;
+    }
+    .paper h3 { margin-top: 18px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    .narrative {
+      min-height: 96px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfdff;
+      white-space: pre-wrap;
+    }
+    .signature-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .signature-line {
+      border-top: 2px solid var(--ink);
+      padding-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
     }
 
     .empty {
@@ -354,6 +450,7 @@
         flex-direction: column;
       }
       .tabs, .metrics { grid-template-columns: 1fr; }
+      .choice-grid, .detail-grid, .record-grid, .signature-row { grid-template-columns: 1fr; }
       .primary, .secondary, .danger { width: 100%; }
     }
     @media print {
@@ -371,8 +468,8 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">Security operations app</p>
-        <h1>WatchDesk V2</h1>
-        <p class="subhead">Shifts, hourly check-ins with overdue alerts, payroll approvals, and DAR/IR reports.</p>
+        <h1>WatchDesk V2.1</h1>
+        <p class="subhead">Patrick review build: simplified guard actions, hourly check-ins, payroll detail, and print-ready DAR/IR reports.</p>
       </div>
       <div class="top-actions">
         <button id="toggleOnline" class="secondary" type="button">Go offline</button>
@@ -446,40 +543,99 @@
               <div id="checkinWindows" class="checkin-windows"></div>
             </div>
 
+            <div id="guardActionHome" class="guard-actions">
+              <button class="action-tile primary-choice" type="button" data-guard-flow="dar">
+                Start DAR
+                <span>Daily activity report</span>
+              </button>
+              <button class="action-tile warn-choice" type="button" data-guard-flow="ir">
+                Start IR
+                <span>Incident report</span>
+              </button>
+              <button class="action-tile" type="button" data-guard-flow="checkin">
+                Hourly Check-In
+                <span>All normal or need supervisor</span>
+              </button>
+              <button class="action-tile" type="button" data-guard-flow="future">
+                Other / Future
+                <span>Reserved for tasks like keys, photos, or visitor logs</span>
+              </button>
+            </div>
+
             <button id="checkInNow" class="big-check" type="button">Check in: everything is normal</button>
 
-            <form id="entryForm" class="form">
-              <label>
-                Shift
-                <select id="shiftSelect"></select>
-              </label>
-              <label>
-                Report
-                <select id="reportType">
-                  <option value="DAR">DAR - Daily activity</option>
-                  <option value="IR">IR - Incident report</option>
-                </select>
-              </label>
-              <label>
-                Activity
-                <select id="entryType">
-                  <option value="normal">Tour complete, all normal</option>
-                  <option value="unusual">Something unusual</option>
-                  <option value="fire">Fire</option>
-                  <option value="suspect">Suspicious person</option>
-                  <option value="theft">Theft</option>
-                  <option value="manual">Other note</option>
-                </select>
-              </label>
-              <label>
-                Notes
-                <textarea id="entryNote" placeholder="Type the guard's note here."></textarea>
-              </label>
-              <div class="button-row">
-                <button id="cleanNote" class="secondary" type="button">Clean note</button>
-                <button class="primary" type="submit">Save note</button>
+            <div id="reportFlow" class="flow-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Report flow</p>
+                  <h2 id="reportFlowTitle">Start DAR</h2>
+                </div>
+                <button class="secondary" type="button" data-guard-flow="home">Back</button>
               </div>
-            </form>
+              <form id="entryForm" class="form">
+                <label>
+                  Shift
+                  <select id="shiftSelect"></select>
+                </label>
+                <label>
+                  Report
+                  <select id="reportType">
+                    <option value="DAR">DAR - Daily activity</option>
+                    <option value="IR">IR - Incident report</option>
+                  </select>
+                </label>
+                <label>
+                  Activity
+                  <select id="entryType">
+                    <option value="normal">Tour complete, all normal</option>
+                    <option value="unusual">Something unusual</option>
+                    <option value="fire">Fire</option>
+                    <option value="suspect">Suspicious person</option>
+                    <option value="theft">Theft</option>
+                    <option value="manual">Other note</option>
+                  </select>
+                </label>
+                <label>
+                  Notes
+                  <textarea id="entryNote" placeholder="Type the guard's note here."></textarea>
+                </label>
+                <div class="button-row">
+                  <button id="cleanNote" class="secondary" type="button">Clean note</button>
+                  <button class="primary" type="submit">Save note</button>
+                </div>
+              </form>
+            </div>
+
+            <div id="checkinFlow" class="flow-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Hourly check-in</p>
+                  <h2>Post status</h2>
+                </div>
+                <button class="secondary" type="button" data-guard-flow="home">Back</button>
+              </div>
+              <div class="detail-grid">
+                <div class="detail-cell"><span>Guard</span><strong id="checkinGuardName"></strong></div>
+                <div class="detail-cell"><span>Assigned site/location</span><strong id="checkinSite"></strong></div>
+                <div class="detail-cell"><span>Current time</span><strong id="checkinCurrentTime"></strong></div>
+                <div class="detail-cell"><span>Status</span><strong>Awaiting selection</strong></div>
+              </div>
+              <div class="choice-grid">
+                <button id="checkinAllNormal" class="choice-card good-choice" type="button">All normal</button>
+                <button id="checkinNeedSupervisor" class="choice-card bad-choice" type="button">Need supervisor</button>
+              </div>
+            </div>
+
+            <div id="futureFlow" class="flow-panel">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Future workflow</p>
+                  <h2>Other / Future</h2>
+                </div>
+                <button class="secondary" type="button" data-guard-flow="home">Back</button>
+              </div>
+              <p class="muted">Placeholder for add-ons such as photo evidence, visitor logs, key control, or maintenance notes.</p>
+            </div>
 
             <button id="finishShift" class="danger" type="button">Finish selected shift</button>
           </section>
@@ -538,6 +694,7 @@
               <tbody id="payrollRows"></tbody>
             </table>
           </div>
+          <div id="payrollDetail" class="panel" style="margin-top:16px;"></div>
         </section>
       </section>
 
@@ -572,9 +729,9 @@
             <div class="panel-head">
               <div>
                 <p class="eyebrow">Printable record</p>
-                <h2>Report preview</h2>
+                <h2>Print / Save as PDF</h2>
               </div>
-              <button id="printReport" class="secondary" type="button">Print</button>
+              <button id="printReport" class="secondary" type="button">Print / Save as PDF</button>
             </div>
             <article id="reportPreview" class="paper"></article>
           </section>
@@ -595,8 +752,9 @@
       account: "Account"
     };
 
-    // Central role model. Future Supabase auth/RLS can map membership.role_slug
-    // to these same permissions and section policies.
+    // Future production integration: Supabase Auth can map the signed-in user's
+    // membership.role_slug to this same ROLES object, and row-level security
+    // policies can enforce each permission scope in Postgres.
     const ROLES = {
       UL: {
         label: "UL - Field guard",
@@ -722,12 +880,16 @@
       const shiftStart = now - 150 * MS_MIN; // started ~2.5h ago
       return {
         screen: "admin",
+        guardFlow: "home",
         online: true,
         role: "SA",
         selectedShiftId: "shift-1",
         selectedReportId: "entry-2",
+        selectedPayrollShiftId: "shift-1",
         queue: [],
         period: { id: "period-1", label: "Pay period - this week", status: "Open" },
+        // Future production integration: SaaS billing/package permissions
+        // should come from account/package tables instead of this demo object.
         account: {
           activationDate: "May 20, 2026",
           packageName: "WatchDesk Pilot",
@@ -763,6 +925,9 @@
         tourViolations: [
           { id: "tour-1", shiftId: "shift-2", label: "Lobby tour missed expected window", at: now - 70 * MS_MIN, status: "Open" }
         ],
+        supervisorRequests: [],
+        // Future production integration: these arrays become Postgres tables
+        // such as guards, shifts, checkins, reports, payroll_rows, and events.
         entries: [
           { id: "entry-1", shiftId: "shift-1", reportType: "DAR", type: "normal", note: "North entrance, loading dock, and camera room checked. All normal.", time: "9:00 AM", incident: false, finalized: false, createdAt: now - 90 * MS_MIN, viewedAt: now - 80 * MS_MIN },
           { id: "entry-2", shiftId: "shift-2", reportType: "IR", type: "suspect", note: "Unknown person tried to enter staff corridor without a visitor badge.", time: "8:39 AM", incident: true, finalized: false, createdAt: now - 75 * MS_MIN, viewedAt: null },
@@ -915,7 +1080,12 @@
         saveState();
         render();
       });
+      document.querySelectorAll("[data-guard-flow]").forEach((button) => {
+        button.addEventListener("click", () => setGuardFlow(button.dataset.guardFlow));
+      });
       $("checkInNow").addEventListener("click", checkInNow);
+      $("checkinAllNormal").addEventListener("click", () => saveHourlyCheckIn(false));
+      $("checkinNeedSupervisor").addEventListener("click", () => saveHourlyCheckIn(true));
       $("entryForm").addEventListener("submit", saveEntry);
       $("cleanNote").addEventListener("click", cleanNote);
       $("finishShift").addEventListener("click", finishShift);
@@ -923,6 +1093,8 @@
       $("closePeriod").addEventListener("click", closePeriod);
       $("exportPayroll").addEventListener("click", exportPayrollCsv);
       $("finalizeReport").addEventListener("click", finalizeSelectedReport);
+      // Future production integration: replace window.print() with a PDF export
+      // service when official DAR/IR storage and delivery are required.
       $("printReport").addEventListener("click", () => window.print());
     }
 
@@ -941,7 +1113,10 @@
         };
         if (!saved.activityLog) saved.activityLog = structuredClone(starter.activityLog || []);
         if (!saved.tourViolations) saved.tourViolations = structuredClone(starter.tourViolations || []);
+        if (!saved.supervisorRequests) saved.supervisorRequests = structuredClone(starter.supervisorRequests || []);
         if (!Array.isArray(saved.queue)) saved.queue = [];
+        if (!saved.guardFlow) saved.guardFlow = "home";
+        if (!saved.selectedPayrollShiftId) saved.selectedPayrollShiftId = saved.selectedShiftId || starter.selectedPayrollShiftId;
         if (!ROLES[saved.role].sections.includes(saved.screen)) saved.screen = ROLES[saved.role].defaultSection;
         saved.entries = (saved.entries || []).map((entry, index) => ({
           ...entry,
@@ -1052,6 +1227,10 @@
           const shift = getShift(item.shiftId);
           return { cls: "warnline", tone: "warn", type: "Tour pattern violation", detail: `${shift.site}: ${item.label}` };
         }),
+        ...state.supervisorRequests.filter((item) => item.status !== "Closed").map((item) => {
+          const shift = getShift(item.shiftId);
+          return { cls: "alert", tone: "bad", type: "Supervisor requested", detail: `${getGuard(shift.guardId).name} at ${shift.site}: ${item.note}` };
+        }),
         ...state.entries.filter((entry) => entry.incident && !entry.finalized).map((entry) => {
           const shift = getShift(entry.shiftId);
           return { cls: "warnline", tone: "warn", type: "Incident report", detail: `${shift.site}: ${entry.note}` };
@@ -1086,6 +1265,8 @@
       const shift = getShift(state.selectedShiftId);
       const guard = getGuard(shift.guardId);
       const cs = checkinState(shift);
+      const ulMode = state.role === "UL";
+      const flow = ulMode ? (state.guardFlow || "home") : "report";
 
       $("phoneBadge").textContent = state.online ? "Online" : "Offline";
       $("phoneBadge").className = `pill ${state.online ? "good" : "warn"}`;
@@ -1107,6 +1288,17 @@
         else if (cs.kind === "due") { btn.classList.add("due"); btn.textContent = `Check in - due in ${cs.minutesLeft} min`; }
         else { btn.textContent = `Check in: everything is normal (next in ${cs.minutesLeft} min)`; }
       }
+      btn.style.display = ulMode ? "none" : "block";
+
+      $("guardActionHome").style.display = ulMode && flow === "home" ? "grid" : "none";
+      $("reportFlow").classList.toggle("active", !ulMode || flow === "dar" || flow === "ir");
+      $("checkinFlow").classList.toggle("active", ulMode && flow === "checkin");
+      $("futureFlow").classList.toggle("active", ulMode && flow === "future");
+      $("finishShift").style.display = ulMode && flow === "home" ? "block" : (ulMode ? "none" : "block");
+      $("reportFlowTitle").textContent = $("reportType").value === "IR" ? "Start IR" : "Start DAR";
+      $("checkinGuardName").textContent = guard.name;
+      $("checkinSite").textContent = `${shift.site} - ${shift.post}`;
+      $("checkinCurrentTime").textContent = fullDateTime(Date.now());
 
       // Recent check-in windows for this shift.
       const windows = state.checkins
@@ -1119,12 +1311,12 @@
         return `<div class="win"><span>${esc(clock(c.expectedAt))} window</span><span class="tag ${tone}">${esc(c.status)} ${esc(when)}</span></div>`;
       }).join("") : `<div class="muted" style="font-size:13px;">No check-in windows yet.</div>`;
 
-      const entries = state.entries.filter((entry) => entry.shiftId === shift.id).slice().reverse();
+      const entries = guardTimelineItems(shift).slice().reverse();
       $("guardTimeline").innerHTML = entries.length ? entries.map((entry) => `
         <article class="card">
-          <span class="tag ${entry.incident ? "bad" : "good"}">${entry.incident ? "Incident" : entry.reportType}</span>
-          <strong>${esc(labelFor(entry.type))}</strong>
-          <div class="muted">${esc(entry.time)} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+          <span class="tag ${entry.tone}">${esc(entry.badge)}</span>
+          <strong>${esc(entry.title)}</strong>
+          <div class="muted">${esc(entry.time)} - ${esc(entry.status)}</div>
           <p>${esc(entry.note)}</p>
         </article>
       `).join("") : `<div class="empty">No notes saved for this shift yet.</div>`;
@@ -1144,6 +1336,9 @@
       } else if (permission.canViewPayroll === "own" && permission.guardId) {
         rows = rows.filter((r) => getShift(r.shiftId).guardId === permission.guardId);
       }
+      if (rows.length && !rows.some((row) => row.shiftId === state.selectedPayrollShiftId)) {
+        state.selectedPayrollShiftId = rows[0].shiftId;
+      }
 
       let totReg = 0, totOt = 0, totIncidents = 0, totPay = 0;
       $("payrollRows").innerHTML = rows.length ? rows.map((row) => {
@@ -1160,12 +1355,17 @@
         const canAct = permission.canApprovePayroll && !row.locked && period.status !== "Closed";
         const actions = canAct ? `
           <div class="row-actions">
+            <button class="mini" type="button" data-detail-button="${esc(shift.id)}">Details</button>
             <button class="mini ok" type="button" data-approve="${esc(shift.id)}">Approve</button>
             <button class="mini no" type="button" data-reject="${esc(shift.id)}">Reject</button>
-          </div>` : `<span class="muted" style="font-size:12px;">${row.locked ? "Locked" : "View only"}</span>`;
+          </div>` : `
+          <div class="row-actions">
+            <button class="mini" type="button" data-detail-button="${esc(shift.id)}">Details</button>
+            <span class="muted" style="font-size:12px;">${row.locked ? "Locked" : "View only"}</span>
+          </div>`;
 
         return `
-          <tr class="${row.locked ? "locked" : ""}">
+          <tr class="${row.locked ? "locked" : ""} ${row.shiftId === state.selectedPayrollShiftId ? "selected" : ""} clickable" data-payroll-detail="${esc(shift.id)}">
             <td>${esc(guard.name)}<br><span class="muted">${esc(guard.employee)} - $${guard.rate.toFixed(2)}/hr</span></td>
             <td>${esc(shift.site)}</td>
             <td>${esc(shift.start)}-${esc(shift.end)}</td>
@@ -1187,14 +1387,71 @@
         <div><strong>$${totPay.toFixed(2)}</strong>Est. gross pay</div>
       `;
 
-      document.querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", () => setRowStatus(b.dataset.approve, "Approved")));
-      document.querySelectorAll("[data-reject]").forEach((b) => b.addEventListener("click", () => setRowStatus(b.dataset.reject, "Rejected")));
+      document.querySelectorAll("[data-payroll-detail]").forEach((row) => {
+        row.addEventListener("click", () => {
+          state.selectedPayrollShiftId = row.dataset.payrollDetail;
+          saveState();
+          renderPayroll(role);
+        });
+      });
+      document.querySelectorAll("[data-detail-button]").forEach((b) => b.addEventListener("click", (event) => {
+        event.stopPropagation();
+        state.selectedPayrollShiftId = b.dataset.detailButton;
+        saveState();
+        renderPayroll(role);
+      }));
+      document.querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setRowStatus(b.dataset.approve, "Approved");
+      }));
+      document.querySelectorAll("[data-reject]").forEach((b) => b.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setRowStatus(b.dataset.reject, "Rejected");
+      }));
 
       // Top-bar payroll controls respect role + period lock.
       const locked = period.status === "Closed";
       $("approveReady").disabled = !permission.canApprovePayroll || locked;
       $("closePeriod").disabled = !permission.canClosePeriod || locked;
       $("closePeriod").textContent = locked ? "Period closed" : "Close period";
+      renderPayrollDetail(rows);
+    }
+
+    function renderPayrollDetail(rows) {
+      const target = $("payrollDetail");
+      if (!target) return;
+      const row = rows.find((item) => item.shiftId === state.selectedPayrollShiftId) || rows[0];
+      if (!row) {
+        target.innerHTML = `<div class="empty">Select a payroll row to see officer-level detail.</div>`;
+        return;
+      }
+      const shift = getShift(row.shiftId);
+      const guard = getGuard(shift.guardId);
+      const incidents = state.entries.filter((entry) => entry.shiftId === shift.id && entry.incident).length;
+      const { reg, ot } = effectiveHours(row, shift);
+      const total = reg + ot;
+      target.innerHTML = `
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Officer payroll detail</p>
+            <h2>${esc(guard.name)}</h2>
+          </div>
+          <span class="tag ${row.status === "Approved" ? "good" : row.status === "Review" || row.status === "Rejected" ? "bad" : "warn"}">${esc(row.status)}</span>
+        </div>
+        <div class="detail-grid">
+          ${detailCell("Guard name", guard.name)}
+          ${detailCell("Employee ID", guard.employee)}
+          ${detailCell("Site", shift.site)}
+          ${detailCell("Dates worked", formatDate(shift.startedAt))}
+          ${detailCell("Time in", clock(shift.startedAt))}
+          ${detailCell("Time out", shift.finished ? clock(shift.lastCheckIn) : "Active shift")}
+          ${detailCell("Regular hours", reg.toFixed(2))}
+          ${detailCell("Holiday hours", "0.00 placeholder")}
+          ${detailCell("Total hours", total.toFixed(2))}
+          ${detailCell("Incidents", incidents)}
+          ${detailCell("Approval status", row.status)}
+        </div>
+      `;
     }
 
     function renderReports(role) {
@@ -1241,17 +1498,29 @@
       $("reportPreview").innerHTML = `
         <header>
           <div>
-            <p class="eyebrow">${esc(selected.reportType)} report</p>
-            <h2>${esc(labelFor(selected.type))}</h2>
+            <p class="eyebrow">Official ${esc(selected.reportType)} record</p>
+            <h2>${esc(selected.reportType)} - ${esc(labelFor(selected.type))}</h2>
           </div>
-          <div class="muted">${esc(selected.time)}<br>${selected.finalized ? "Finalized and locked" : "Draft"}</div>
+          <div class="muted">Print / Save as PDF<br>${selected.finalized ? "Finalized and locked" : "Draft"}</div>
         </header>
-        <p><strong>Guard:</strong> ${esc(guard.name)} (${esc(guard.employee)})</p>
-        <p><strong>Site:</strong> ${esc(shift.site)} - ${esc(shift.post)}</p>
-        <p><strong>Shift:</strong> ${esc(shift.start)} to ${esc(shift.end)}</p>
-        <p><strong>Report type:</strong> ${esc(selected.reportType)}</p>
-        <p><strong>Notes:</strong></p>
-        <p>${esc(selected.note)}</p>
+        <div class="record-grid">
+          ${recordCell("Report type", selected.reportType)}
+          ${recordCell("Status", selected.finalized ? "Finalized and locked" : "Draft")}
+          ${recordCell("Guard", guard.name)}
+          ${recordCell("Employee ID", guard.employee)}
+          ${recordCell("Site", `${shift.site} - ${shift.post}`)}
+          ${recordCell("Shift", `${shift.start} to ${shift.end}`)}
+          ${recordCell("Date/time", fullDateTime(selected.createdAt || Date.now()))}
+          ${recordCell("Activity", labelFor(selected.type))}
+        </div>
+        <h3>Notes / Narrative</h3>
+        <div class="narrative">${esc(selected.note)}</div>
+        <h3>Supervisor Review</h3>
+        <div class="narrative">Supervisor review placeholder: pending review, notes, corrective action, or client notification.</div>
+        <div class="signature-row">
+          <div class="signature-line">Guard signature / date</div>
+          <div class="signature-line">Supervisor signature / date</div>
+        </div>
       `;
     }
 
@@ -1345,7 +1614,8 @@
       return [
         ...state.shifts.filter((shift) => !shift.finished && checkinState(shift).kind === "overdue"),
         ...state.entries.filter((entry) => entry.incident && !entry.finalized),
-        ...state.tourViolations.filter((item) => item.status !== "Closed")
+        ...state.tourViolations.filter((item) => item.status !== "Closed"),
+        ...state.supervisorRequests.filter((item) => item.status !== "Closed")
       ];
     }
 
@@ -1362,20 +1632,102 @@
       return Date.now() - ts <= 7 * 24 * 60 * MS_MIN;
     }
 
+    function guardTimelineItems(shift) {
+      const reportItems = state.entries
+        .filter((entry) => entry.shiftId === shift.id)
+        .map((entry) => ({
+          at: entry.createdAt || Date.now(),
+          badge: entry.incident ? "Incident" : entry.reportType,
+          tone: entry.incident ? "bad" : "good",
+          title: labelFor(entry.type),
+          time: entry.time,
+          status: entry.finalized ? "Finalized" : "Draft",
+          note: entry.note
+        }));
+      const checkinItems = state.checkins
+        .filter((item) => item.shiftId === shift.id && item.receivedAt)
+        .map((item) => ({
+          at: item.receivedAt,
+          badge: item.needsSupervisor ? "Supervisor requested" : "Check-in",
+          tone: item.needsSupervisor ? "bad" : "good",
+          title: item.needsSupervisor ? "Hourly check-in: need supervisor" : "Hourly check-in: all normal",
+          time: clock(item.receivedAt),
+          status: item.status,
+          note: item.note || (item.needsSupervisor ? "Guard requested supervisor follow-up." : "All normal.")
+        }));
+      return [...reportItems, ...checkinItems].sort((a, b) => a.at - b.at);
+    }
+
     // ---- Actions -----------------------------------------------------------
+    function setGuardFlow(flow) {
+      state.guardFlow = flow || "home";
+      if (flow === "dar") {
+        $("reportType").value = "DAR";
+        $("entryType").value = "normal";
+      }
+      if (flow === "ir") {
+        $("reportType").value = "IR";
+        $("entryType").value = "suspect";
+      }
+      saveState();
+      render();
+    }
+
     function checkInNow() {
       if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot use guard actions."); return; }
       const shift = getShift(state.selectedShiftId);
       if (shift.finished) return;
+      createCheckIn(shift, false);
+      saveState();
+      render();
+    }
+
+    function saveHourlyCheckIn(needsSupervisor) {
+      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot use guard actions."); return; }
+      const shift = getShift(state.selectedShiftId);
+      if (shift.finished) return;
+      createCheckIn(shift, needsSupervisor);
+      state.guardFlow = "home";
+      saveState();
+      render();
+    }
+
+    function createCheckIn(shift, needsSupervisor) {
       const policy = shift.policyMinutes || 60;
       const expectedWindow = shift.lastCheckIn + policy * MS_MIN;
       shift.status = "On duty";
       shift.lastCheckIn = Date.now();
-      state.checkins.push({ id: crypto.randomUUID(), shiftId: shift.id, expectedAt: expectedWindow, receivedAt: Date.now(), status: "Received" });
+      const checkin = {
+        id: crypto.randomUUID(),
+        shiftId: shift.id,
+        expectedAt: expectedWindow,
+        receivedAt: Date.now(),
+        status: "Received",
+        needsSupervisor,
+        note: needsSupervisor ? "Supervisor requested from hourly check-in." : "All normal."
+      };
+      state.checkins.push(checkin);
+      if (needsSupervisor) {
+        state.supervisorRequests.unshift({
+          id: crypto.randomUUID(),
+          shiftId: shift.id,
+          checkinId: checkin.id,
+          note: "Supervisor requested from hourly check-in.",
+          at: checkin.receivedAt,
+          status: "Open"
+        });
+        const payroll = state.payroll.find((row) => row.shiftId === shift.id);
+        if (payroll && !payroll.locked && payroll.status !== "Approved") payroll.status = "Review";
+      }
       queueAction("check-in saved", shift.id);
-      recordActivity("Guard check-in received", `${getGuard(shift.guardId).name} checked in at ${shift.site}. Admin status and payroll check-in count updated.`);
-      saveState();
-      render();
+      // Future production integration: notifications can send supervisor-request
+      // alerts by SMS, push, email, or in-app inbox from this event.
+      recordActivity(
+        needsSupervisor ? "Supervisor requested" : "Guard check-in received",
+        needsSupervisor
+          ? `${getGuard(shift.guardId).name} requested supervisor help at ${shift.site}. Supervisor queue updated.`
+          : `${getGuard(shift.guardId).name} checked in at ${shift.site}. Admin status and payroll check-in count updated.`
+      );
     }
 
     function markShiftOk(shiftId) {
@@ -1434,6 +1786,7 @@
         `${getGuard(shift.guardId).name} added "${labelFor(entry.type)}" at ${shift.site}. Reports updated${entry.incident ? " and payroll moved to review." : "."}`
       );
       $("entryNote").value = "";
+      if (state.role === "UL") state.guardFlow = "home";
       saveState();
       render();
     }
@@ -1553,6 +1906,14 @@
     function getGuard(id) { return state.guards.find((guard) => guard.id === id) || state.guards[0]; }
     function getShift(id) { return state.shifts.find((shift) => shift.id === id) || state.shifts[0]; }
 
+    function detailCell(label, value) {
+      return `<div class="detail-cell"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
+    }
+
+    function recordCell(label, value) {
+      return `<div class="record-cell"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;
+    }
+
     function labelFor(type) {
       return {
         normal: "Tour complete, all normal",
@@ -1566,6 +1927,14 @@
 
     function nowTime() {
       return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+    function formatDate(ts) {
+      if (!ts) return "-";
+      return new Date(ts).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+    }
+    function fullDateTime(ts) {
+      if (!ts) return "-";
+      return `${formatDate(ts)} ${clock(ts)}`;
     }
     function clock(ts) {
       if (!ts) return "-";
