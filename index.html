@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WatchDesk V2.1 - Patrick Review Ready</title>
+  <title>WatchDesk V2.2 - Workflow Clarification Pass</title>
   <style>
     :root {
       --bg: #edf3f7;
@@ -134,15 +134,20 @@
     }
 
     .metric {
-      min-height: 112px;
-      padding: 16px;
+      min-height: 86px;
+      padding: 12px 14px;
       border-left: 5px solid var(--blue);
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
     }
     .metric:nth-child(2) { border-left-color: var(--green); }
     .metric:nth-child(3) { border-left-color: var(--gold); }
     .metric:nth-child(4) { border-left-color: var(--red); }
     .metric span { display: block; color: var(--muted); font-size: 12px; }
-    .metric strong { display: block; margin: 8px 0 6px; font-size: 34px; }
+    .metric strong { display: block; margin: 5px 0 3px; font-size: 26px; }
+    .metric:hover { background: #f3f8fc; }
+    .metric .muted { font-size: 12px; }
 
     .grid { display: grid; gap: 16px; }
     .two { grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.8fr); }
@@ -243,6 +248,25 @@
     }
     .action-tile.primary-choice { background: #eaf3fb; border-color: #b7d2e8; }
     .action-tile.warn-choice { background: #fff7e6; border-color: #efd087; }
+
+    .active-report-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .active-report-card {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #b9cfe0;
+      border-left: 5px solid var(--blue);
+      border-radius: 8px;
+      background: #f8fbfd;
+      color: var(--ink);
+      padding: 12px;
+    }
+    .active-report-card.ir { border-left-color: var(--gold); }
+    .active-report-card p { margin-bottom: 0; }
+    .active-report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
     .flow-panel {
       display: none;
@@ -389,6 +413,20 @@
       font-size: 13px;
     }
 
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .setup-item {
+      min-height: 110px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      padding: 14px;
+    }
+    .setup-item strong { display: block; margin-bottom: 7px; }
+
     .empty {
       border: 1px dashed var(--line);
       border-radius: 8px;
@@ -450,7 +488,7 @@
         flex-direction: column;
       }
       .tabs, .metrics { grid-template-columns: 1fr; }
-      .choice-grid, .detail-grid, .record-grid, .signature-row { grid-template-columns: 1fr; }
+      .choice-grid, .detail-grid, .record-grid, .signature-row, .setup-grid { grid-template-columns: 1fr; }
       .primary, .secondary, .danger { width: 100%; }
     }
     @media print {
@@ -468,8 +506,8 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">Security operations app</p>
-        <h1>WatchDesk V2.1</h1>
-        <p class="subhead">Patrick review build: simplified guard actions, hourly check-ins, payroll detail, and print-ready DAR/IR reports.</p>
+        <h1>WatchDesk V2.2</h1>
+        <p class="subhead">Workflow clarification build: active reports, priority operations queues, and future control-center setup.</p>
       </div>
       <div class="top-actions">
         <button id="toggleOnline" class="secondary" type="button">Go offline</button>
@@ -496,25 +534,36 @@
           <section class="panel">
             <div class="panel-head">
               <div>
-                <p class="eyebrow">Today</p>
-                <h2>Guards and posts</h2>
+                <p class="eyebrow">Top priority</p>
+                <h2>Immediate response</h2>
               </div>
-              <span id="syncBadge" class="pill"></span>
+              <span id="topPriorityBadge" class="pill"></span>
             </div>
-            <div id="shiftBoard" class="stack"></div>
+            <div id="topPriorityList" class="stack"></div>
           </section>
 
           <section class="panel">
             <div class="panel-head">
               <div>
                 <p class="eyebrow">Needs attention</p>
-                <h2>Supervisor queue</h2>
+                <h2>Operational follow-up</h2>
               </div>
               <span id="overdueBadge" class="pill"></span>
             </div>
             <div id="attentionList" class="stack"></div>
           </section>
         </div>
+
+        <section class="panel live-feed" id="shiftBoardPanel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2>Guards and posts</h2>
+            </div>
+            <span id="syncBadge" class="pill"></span>
+          </div>
+          <div id="shiftBoard" class="stack"></div>
+        </section>
 
         <section class="panel live-feed">
           <div class="panel-head">
@@ -544,12 +593,12 @@
             </div>
 
             <div id="guardActionHome" class="guard-actions">
-              <button class="action-tile primary-choice" type="button" data-guard-flow="dar">
-                Start DAR
+              <button id="darActionButton" class="action-tile primary-choice" type="button" data-guard-flow="dar">
+                <strong id="darActionLabel">Start DAR</strong>
                 <span>Daily activity report</span>
               </button>
-              <button class="action-tile warn-choice" type="button" data-guard-flow="ir">
-                Start IR
+              <button id="irActionButton" class="action-tile warn-choice" type="button" data-guard-flow="ir">
+                <strong id="irActionLabel">Start IR</strong>
                 <span>Incident report</span>
               </button>
               <button class="action-tile" type="button" data-guard-flow="checkin">
@@ -561,6 +610,8 @@
                 <span>Reserved for tasks like keys, photos, or visitor logs</span>
               </button>
             </div>
+
+            <div id="activeReports" class="active-report-list"></div>
 
             <button id="checkInNow" class="big-check" type="button">Check in: everything is normal</button>
 
@@ -712,6 +763,19 @@
         </section>
       </section>
 
+      <section id="controlScreen" class="screen">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Control Center / Setup</p>
+              <h2>Organization configuration</h2>
+            </div>
+            <span class="pill warn">Production placeholder</span>
+          </div>
+          <div id="controlCenterGrid" class="setup-grid"></div>
+        </section>
+      </section>
+
       <section id="reportsScreen" class="screen">
         <div class="grid two">
           <section class="panel">
@@ -749,7 +813,8 @@
       guard: "Guard App",
       payroll: "Payroll",
       reports: "Reports",
-      account: "Account"
+      account: "Account",
+      control: "Control Center / Setup"
     };
 
     // Future production integration: Supabase Auth can map the signed-in user's
@@ -772,7 +837,8 @@
           canApprovePayroll: false,
           canClosePeriod: false,
           canManageBilling: false,
-          canViewAllReports: false
+          canViewAllReports: false,
+          canManageSetup: false
         }
       },
       CFSL: {
@@ -780,7 +846,7 @@
         description: "Site supervisor: monitors guards, missed check-ins, unviewed incidents, tour violations, and supervisor queue items.",
         defaultSection: "admin",
         sections: ["admin", "guard", "reports"],
-        dashboardCards: ["unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity"],
+        dashboardCards: ["missedCheckins", "supervisorRequests", "tourViolations", "missedTours", "unviewedIRs", "unfinishedReports"],
         permissions: {
           scope: "site",
           canUseGuardApp: true,
@@ -790,15 +856,16 @@
           canApprovePayroll: false,
           canClosePeriod: false,
           canManageBilling: false,
-          canViewAllReports: false
+          canViewAllReports: false,
+          canManageSetup: false
         }
       },
       CML: {
         label: "CML - Operations manager",
         description: "Operations manager: reviews operations metrics, incident flow, missed check-ins, tour violations, payroll, and reports.",
         defaultSection: "admin",
-        sections: ["admin", "payroll", "reports"],
-        dashboardCards: ["unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity"],
+        sections: ["admin", "payroll", "reports", "control"],
+        dashboardCards: ["missedCheckins", "supervisorRequests", "tourViolations", "missedTours", "unviewedIRs", "unfinishedReports"],
         permissions: {
           scope: "organization",
           canUseGuardApp: false,
@@ -808,14 +875,15 @@
           canApprovePayroll: true,
           canClosePeriod: false,
           canManageBilling: false,
-          canViewAllReports: true
+          canViewAllReports: true,
+          canManageSetup: true
         }
       },
       CAL: {
         label: "CAL - Client account lead",
         description: "Client account lead: sees high-level account health, active users, IR trends, tour violations, and missed check-ins.",
         defaultSection: "admin",
-        sections: ["admin", "payroll", "reports"],
+        sections: ["admin", "payroll", "reports", "control"],
         dashboardCards: ["activeUsers", "irSevenDays", "tourViolationsSevenDays", "missedCheckinsSevenDays"],
         permissions: {
           scope: "client_account",
@@ -826,14 +894,15 @@
           canApprovePayroll: true,
           canClosePeriod: false,
           canManageBilling: false,
-          canViewAllReports: true
+          canViewAllReports: true,
+          canManageSetup: true
         }
       },
       ARUL: {
         label: "ARUL - Account/billing user",
         description: "Account/billing user: sees account status, activation date, locations, billing history, paid/unpaid state, and package placeholders.",
         defaultSection: "account",
-        sections: ["account"],
+        sections: ["account", "control"],
         dashboardCards: ["accountActiveUsers", "activationDate", "locations", "billingStatus", "packageStatus"],
         permissions: {
           scope: "account_billing",
@@ -844,15 +913,16 @@
           canApprovePayroll: false,
           canClosePeriod: false,
           canManageBilling: true,
-          canViewAllReports: false
+          canViewAllReports: false,
+          canManageSetup: true
         }
       },
       SA: {
         label: "SA - Super admin",
         description: "Super admin: sees all sections, all dashboard cards, and all prototype controls.",
         defaultSection: "admin",
-        sections: ["admin", "guard", "payroll", "reports", "account"],
-        dashboardCards: ["activeUsers", "unviewedIRs", "missedCheckins", "tourViolations", "supervisorQueue", "recentActivity", "irSevenDays", "accountActiveUsers", "billingStatus", "packageStatus"],
+        sections: ["admin", "guard", "payroll", "reports", "account", "control"],
+        dashboardCards: ["missedCheckins", "supervisorRequests", "tourViolations", "missedTours", "unviewedIRs", "unfinishedReports", "activeUsers", "recentActivity"],
         permissions: {
           scope: "platform",
           canUseGuardApp: true,
@@ -862,7 +932,8 @@
           canApprovePayroll: true,
           canClosePeriod: true,
           canManageBilling: true,
-          canViewAllReports: true
+          canViewAllReports: true,
+          canManageSetup: true
         }
       }
     };
@@ -885,6 +956,7 @@
         role: "SA",
         selectedShiftId: "shift-1",
         selectedReportId: "entry-2",
+        editingReportId: null,
         selectedPayrollShiftId: "shift-1",
         queue: [],
         period: { id: "period-1", label: "Pay period - this week", status: "Open" },
@@ -949,6 +1021,10 @@
       hydrateRoleSelect();
       bindEvents();
       hydrateShiftSelect();
+      if (state.role === "UL") {
+        state.guardFlow = "home";
+        state.editingReportId = null;
+      }
       render();
       // Live clock: re-evaluate overdue status and countdowns every 15s.
       setInterval(tick, 15000);
@@ -1037,6 +1113,10 @@
         const button = event.target.closest("[data-screen]");
         if (!button) return;
         state.screen = button.dataset.screen;
+        if (state.role === "UL" && state.screen === "guard") {
+          state.guardFlow = "home";
+          state.editingReportId = null;
+        }
         saveState();
         render();
       });
@@ -1049,6 +1129,10 @@
         if (r.permissions.guardId) {
           const sh = state.shifts.find((s) => s.guardId === r.permissions.guardId);
           if (sh) state.selectedShiftId = sh.id;
+        }
+        if (state.role === "UL") {
+          state.guardFlow = "home";
+          state.editingReportId = null;
         }
         saveState();
         hydrateShiftSelect();
@@ -1077,11 +1161,27 @@
       $("exportJson").addEventListener("click", () => download("watchdesk-v2-data.json", JSON.stringify(state, null, 2), "application/json"));
       $("shiftSelect").addEventListener("change", () => {
         state.selectedShiftId = $("shiftSelect").value;
+        state.editingReportId = null;
+        if (state.role === "UL") state.guardFlow = "home";
         saveState();
         render();
       });
       document.querySelectorAll("[data-guard-flow]").forEach((button) => {
         button.addEventListener("click", () => setGuardFlow(button.dataset.guardFlow));
+      });
+      $("activeReports").addEventListener("click", (event) => {
+        const continueButton = event.target.closest("[data-continue-report]");
+        const finalizeButton = event.target.closest("[data-finalize-active]");
+        if (continueButton) continueReport(continueButton.dataset.continueReport);
+        if (finalizeButton) finalizeReportById(finalizeButton.dataset.finalizeActive);
+      });
+      $("metrics").addEventListener("click", (event) => {
+        const card = event.target.closest("[data-metric-action]");
+        if (card) handleMetricAction(card.dataset.metricAction);
+      });
+      $("accountMetrics").addEventListener("click", (event) => {
+        const card = event.target.closest("[data-metric-action]");
+        if (card) handleMetricAction(card.dataset.metricAction);
       });
       $("checkInNow").addEventListener("click", checkInNow);
       $("checkinAllNormal").addEventListener("click", () => saveHourlyCheckIn(false));
@@ -1116,6 +1216,7 @@
         if (!saved.supervisorRequests) saved.supervisorRequests = structuredClone(starter.supervisorRequests || []);
         if (!Array.isArray(saved.queue)) saved.queue = [];
         if (!saved.guardFlow) saved.guardFlow = "home";
+        if (!Object.prototype.hasOwnProperty.call(saved, "editingReportId")) saved.editingReportId = null;
         if (!saved.selectedPayrollShiftId) saved.selectedPayrollShiftId = saved.selectedShiftId || starter.selectedPayrollShiftId;
         if (!ROLES[saved.role].sections.includes(saved.screen)) saved.screen = ROLES[saved.role].defaultSection;
         saved.entries = (saved.entries || []).map((entry, index) => ({
@@ -1171,6 +1272,7 @@
       renderPayroll(role);
       renderReports(role);
       renderAccount(role);
+      renderControlCenter(role);
       renderActivityLog();
     }
 
@@ -1183,15 +1285,10 @@
     }
 
     function renderAdmin(role) {
-      const queueItems = supervisorQueueItems();
-
       $("metrics").innerHTML = role.dashboardCards.map(dashboardCard).join("");
 
       $("syncBadge").textContent = state.online ? `Online - ${state.queue.length} queued` : `Offline - ${state.queue.length} queued`;
       $("syncBadge").className = `pill ${state.online ? "good" : "warn"}`;
-
-      $("overdueBadge").textContent = queueItems.length ? `${queueItems.length} item(s)` : "All clear";
-      $("overdueBadge").className = `pill ${queueItems.length ? "bad" : "good"}`;
 
       $("shiftBoard").innerHTML = state.shifts.map((shift) => {
         const guard = getGuard(shift.guardId);
@@ -1209,35 +1306,59 @@
               <span class="tag ${tone}">${esc(label)}</span>
               <span class="muted">Last check-in: ${esc(clock(shift.lastCheckIn))}</span>
             </div>
-            ${role.permissions.canUseGuardApp ? `<button class="secondary" type="button" data-mark-ok="${esc(shift.id)}">Mark OK</button>` : `<span class="muted" style="font-size:12px;">View only</span>`}
+            ${role.permissions.canUseGuardApp ? `<button class="secondary" type="button" data-acknowledge="${esc(shift.id)}">Acknowledged</button>` : `<span class="muted" style="font-size:12px;">View only</span>`}
           </article>
         `;
       }).join("");
 
-      document.querySelectorAll("[data-mark-ok]").forEach((button) => {
-        button.addEventListener("click", () => markShiftOk(button.dataset.markOk));
+      document.querySelectorAll("[data-acknowledge]").forEach((button) => {
+        button.addEventListener("click", () => acknowledgeShift(button.dataset.acknowledge));
       });
 
-      const items = [
-        ...state.shifts.filter((s) => !s.finished && checkinState(s).kind === "overdue").map((s) => {
-          const cs = checkinState(s);
-          return { cls: "alert", tone: "bad", type: "Overdue check-in", detail: `${getGuard(s.guardId).name} at ${s.site} - ${Math.abs(cs.minutesLeft)} min past the ${s.policyMinutes}-min window` };
-        }),
-        ...state.tourViolations.filter((item) => item.status !== "Closed").map((item) => {
+      const topPriorityItems = [
+        ...state.checkins.filter((item) => item.status === "Missed").map((item) => {
           const shift = getShift(item.shiftId);
-          return { cls: "warnline", tone: "warn", type: "Tour pattern violation", detail: `${shift.site}: ${item.label}` };
+          return { cls: "alert", tone: "bad", type: "Missed check-in", detail: `${getGuard(shift.guardId).name} at ${shift.site} - expected ${clock(item.expectedAt)}` };
         }),
-        ...state.supervisorRequests.filter((item) => item.status !== "Closed").map((item) => {
+        ...state.supervisorRequests.filter((item) => item.status === "Open").map((item) => {
           const shift = getShift(item.shiftId);
           return { cls: "alert", tone: "bad", type: "Supervisor requested", detail: `${getGuard(shift.guardId).name} at ${shift.site}: ${item.note}` };
-        }),
-        ...state.entries.filter((entry) => entry.incident && !entry.finalized).map((entry) => {
-          const shift = getShift(entry.shiftId);
-          return { cls: "warnline", tone: "warn", type: "Incident report", detail: `${shift.site}: ${entry.note}` };
         })
       ];
 
-      $("attentionList").innerHTML = items.length ? items.map((item) => `
+      const attentionItems = [
+        ...state.tourViolations.filter((item) => item.status !== "Closed" && !item.label.toLowerCase().includes("missed")).map((item) => {
+          const shift = getShift(item.shiftId);
+          return { cls: "warnline", tone: "warn", type: "Tour pattern violation", detail: `${shift.site}: ${item.label}` };
+        }),
+        ...state.tourViolations.filter((item) => item.status !== "Closed" && item.label.toLowerCase().includes("missed")).map((item) => {
+          const shift = getShift(item.shiftId);
+          return { cls: "warnline", tone: "warn", type: "Missed tour", detail: `${shift.site}: ${item.label}` };
+        }),
+        ...state.entries.filter((entry) => entry.reportType === "IR" && !entry.finalized).map((entry) => {
+          const shift = getShift(entry.shiftId);
+          return { cls: "warnline", tone: "warn", type: "IR needs review", detail: `${shift.site}: ${entry.note}` };
+        }),
+        ...state.entries.filter((entry) => !entry.finalized).map((entry) => {
+          const shift = getShift(entry.shiftId);
+          const status = entry.reportType === "DAR" ? "DAR unfinished" : "IR unfinished";
+          return { cls: "warnline", tone: "warn", type: "Unfinished report", detail: `${status} - ${getGuard(shift.guardId).name} at ${shift.site}` };
+        })
+      ];
+
+      $("topPriorityBadge").textContent = topPriorityItems.length ? `${topPriorityItems.length} urgent` : "All clear";
+      $("topPriorityBadge").className = `pill ${topPriorityItems.length ? "bad" : "good"}`;
+      $("overdueBadge").textContent = attentionItems.length ? `${attentionItems.length} item(s)` : "All clear";
+      $("overdueBadge").className = `pill ${attentionItems.length ? "warn" : "good"}`;
+
+      $("topPriorityList").innerHTML = topPriorityItems.length ? topPriorityItems.map((item) => `
+        <article class="card ${item.cls}">
+          <span class="tag ${item.tone}">${esc(item.type)}</span>
+          <strong>${esc(item.detail)}</strong>
+        </article>
+      `).join("") : `<div class="empty">No missed check-ins or supervisor requests.</div>`;
+
+      $("attentionList").innerHTML = attentionItems.length ? attentionItems.map((item) => `
         <article class="card ${item.cls}">
           <span class="tag ${item.tone}">${esc(item.type)}</span>
           <strong>${esc(item.detail)}</strong>
@@ -1267,11 +1388,15 @@
       const cs = checkinState(shift);
       const ulMode = state.role === "UL";
       const flow = ulMode ? (state.guardFlow || "home") : "report";
+      const activeDar = getActiveReport(shift.id, "DAR");
+      const activeIr = getActiveReport(shift.id, "IR");
 
       $("phoneBadge").textContent = state.online ? "Online" : "Offline";
       $("phoneBadge").className = `pill ${state.online ? "good" : "warn"}`;
       $("currentShiftTitle").textContent = `${guard.name} - ${shift.site}`;
       $("currentShiftMeta").textContent = `${shift.post}, ${shift.start} to ${shift.end}. Check in every ${shift.policyMinutes} min.`;
+      $("shiftSelect").disabled = ulMode;
+      $("reportType").disabled = ulMode;
 
       // Big check-in button reflects how close we are to the window.
       const btn = $("checkInNow");
@@ -1291,14 +1416,24 @@
       btn.style.display = ulMode ? "none" : "block";
 
       $("guardActionHome").style.display = ulMode && flow === "home" ? "grid" : "none";
+      $("darActionLabel").textContent = activeDar ? "Continue Active DAR" : "Start DAR";
+      $("irActionLabel").textContent = activeIr ? "Continue Active IR" : "Start IR";
       $("reportFlow").classList.toggle("active", !ulMode || flow === "dar" || flow === "ir");
       $("checkinFlow").classList.toggle("active", ulMode && flow === "checkin");
       $("futureFlow").classList.toggle("active", ulMode && flow === "future");
       $("finishShift").style.display = ulMode && flow === "home" ? "block" : (ulMode ? "none" : "block");
-      $("reportFlowTitle").textContent = $("reportType").value === "IR" ? "Start IR" : "Start DAR";
+      const editing = state.entries.find((entry) => entry.id === state.editingReportId && !entry.finalized);
+      $("reportFlowTitle").textContent = editing
+        ? `Continue Active ${editing.reportType}`
+        : ($("reportType").value === "IR" ? "Start IR" : "Start DAR");
       $("checkinGuardName").textContent = guard.name;
       $("checkinSite").textContent = `${shift.site} - ${shift.post}`;
       $("checkinCurrentTime").textContent = fullDateTime(Date.now());
+
+      $("activeReports").style.display = ulMode && flow === "home" ? "grid" : "none";
+      $("activeReports").innerHTML = ulMode && flow === "home"
+        ? ["DAR", "IR"].map((reportType) => activeReportCard(shift, reportType)).join("")
+        : "";
 
       // Recent check-in windows for this shift.
       const windows = state.checkins
@@ -1320,6 +1455,31 @@
           <p>${esc(entry.note)}</p>
         </article>
       `).join("") : `<div class="empty">No notes saved for this shift yet.</div>`;
+    }
+
+    function activeReportCard(shift, reportType) {
+      const active = getActiveReport(shift.id, reportType);
+      const latest = active || getLatestReport(shift.id, reportType);
+      const status = active ? "Active / unfinished" : (latest ? (reportType === "DAR" ? "Completed" : "Finalized") : "Not started");
+      const tone = active ? "warn" : (latest ? "good" : "");
+      const note = latest ? latest.note : `No ${reportType} has been started for this shift.`;
+      const started = latest ? fullDateTime(latest.createdAt) : "-";
+      return `
+        <article class="active-report-card ${reportType === "IR" ? "ir" : ""}">
+          <div>
+            <span class="tag ${tone}">${esc(status)}</span>
+            <strong>${esc(reportType)} Active Report</strong>
+            <p class="muted">Last saved note: ${esc(note)}</p>
+            <div class="muted">Report started: ${esc(started)}</div>
+          </div>
+          ${active ? `
+            <div class="active-report-actions">
+              <button class="secondary" type="button" data-continue-report="${esc(active.id)}">Continue editing</button>
+              <button class="primary" type="button" data-finalize-active="${esc(active.id)}">Finalize ${esc(reportType)}</button>
+            </div>
+          ` : ""}
+        </article>
+      `;
     }
 
     function renderPayroll(role) {
@@ -1465,7 +1625,7 @@
             <span class="tag ${entry.incident ? "bad" : "good"}">${esc(entry.reportType)}</span>
             ${unread ? `<span class="tag warn">Unviewed</span>` : ""}
             <strong>${esc(guard.name)} - ${esc(shift.site)}</strong>
-            <div class="muted">${esc(entry.time)} - ${esc(labelFor(entry.type))} - ${entry.finalized ? "Finalized" : "Draft"}</div>
+            <div class="muted">${esc(entry.time)} - ${esc(labelFor(entry.type))} - ${esc(reportStatus(entry))}</div>
             <p>${esc(entry.note)}</p>
             <button class="secondary" type="button" data-preview="${esc(entry.id)}">Preview</button>
           </article>
@@ -1501,11 +1661,11 @@
             <p class="eyebrow">Official ${esc(selected.reportType)} record</p>
             <h2>${esc(selected.reportType)} - ${esc(labelFor(selected.type))}</h2>
           </div>
-          <div class="muted">Print / Save as PDF<br>${selected.finalized ? "Finalized and locked" : "Draft"}</div>
+          <div class="muted">Print / Save as PDF<br>${esc(reportStatus(selected))}</div>
         </header>
         <div class="record-grid">
           ${recordCell("Report type", selected.reportType)}
-          ${recordCell("Status", selected.finalized ? "Finalized and locked" : "Draft")}
+          ${recordCell("Status", reportStatus(selected))}
           ${recordCell("Guard", guard.name)}
           ${recordCell("Employee ID", guard.employee)}
           ${recordCell("Site", `${shift.site} - ${shift.post}`)}
@@ -1515,8 +1675,8 @@
         </div>
         <h3>Notes / Narrative</h3>
         <div class="narrative">${esc(selected.note)}</div>
-        <h3>Supervisor Review</h3>
-        <div class="narrative">Supervisor review placeholder: pending review, notes, corrective action, or client notification.</div>
+        <h3>Supervisor Review${selected.reportType === "DAR" ? " (optional)" : ""}</h3>
+        <div class="narrative">${selected.reportType === "DAR" ? "Optional supervisor notes placeholder. DAR completion does not require mandatory review." : "Supervisor review placeholder: pending review, notes, corrective action, or client notification."}</div>
         <div class="signature-row">
           <div class="signature-line">Guard signature / date</div>
           <div class="signature-line">Supervisor signature / date</div>
@@ -1552,8 +1712,34 @@
       `;
     }
 
-    function metric(label, value, detail) {
-      return `<div class="metric"><span>${label}</span><strong>${value}</strong><div class="muted">${detail}</div></div>`;
+    function renderControlCenter(role) {
+      const target = $("controlCenterGrid");
+      if (!target) return;
+      const setupItems = [
+        ["Users", "Role profiles, activation, status, and access scope."],
+        ["Sites", "Client locations, groups, contacts, and operating rules."],
+        ["Posts", "Post orders, checkpoints, equipment, and coverage needs."],
+        ["Shifts", "Templates, assignments, breaks, and recurring schedules."],
+        ["Tour patterns", "Expected checkpoints, timing windows, and exceptions."],
+        ["Supervisor assignments", "Active CFSL routing by site or operating group."],
+        ["Holiday calendar", "Holiday rules and future payroll hour handling."],
+        ["Billing/package settings", "SaaS package permissions, add-ons, and account status."]
+      ];
+      target.innerHTML = role.permissions.canManageSetup
+        ? setupItems.map(([title, detail]) => `
+          <article class="setup-item">
+            <strong>${esc(title)}</strong>
+            <span class="muted">${esc(detail)}</span>
+          </article>
+        `).join("")
+        : `<div class="empty">This role does not have setup access.</div>`;
+      // Future production integration: these setup modules become Postgres-backed
+      // admin tables protected by Supabase Auth and row-level security. Billing
+      // and package settings will also gate paid SaaS features.
+    }
+
+    function metric(label, value, detail, action = "") {
+      return `<button class="metric" type="button" data-metric-action="${esc(action)}"><span>${esc(label)}</span><strong>${esc(value)}</strong><div class="muted">${esc(detail)}</div></button>`;
     }
 
     function dashboardCard(key) {
@@ -1566,36 +1752,39 @@
       const cardMap = {
         myShift: () => {
           const shift = myShiftForRole();
-          return metric("My shift", shift ? shift.site : "None", shift ? `${shift.post} - ${shift.finished ? "Finished" : "Active"}` : "No assigned shift");
+          return metric("My shift", shift ? shift.site : "None", shift ? `${shift.post} - ${shift.finished ? "Finished" : "Active"}` : "No assigned shift", "shiftBoard");
         },
         myNextCheckIn: () => {
           const shift = myShiftForRole();
           const cs = shift ? checkinState(shift) : null;
           const value = !shift || shift.finished ? "-" : `${cs.minutesLeft}m`;
-          return metric("Next check-in", value, shift ? `${shift.policyMinutes}-minute post policy` : "No active post");
+          return metric("Next check-in", value, shift ? `${shift.policyMinutes}-minute post policy` : "No active post", "topPriority");
         },
-        myOpenReports: () => metric("My open reports", visibleEntriesForRole(currentRole()).filter((entry) => !entry.finalized).length, "Draft DAR/IR records"),
+        myOpenReports: () => metric("My open reports", visibleEntriesForRole(currentRole()).filter((entry) => !entry.finalized).length, "Unfinished DAR/IR records", "reports"),
         myMissedCheckins: () => {
           const shift = myShiftForRole();
           const count = shift ? state.checkins.filter((item) => item.shiftId === shift.id && item.status === "Missed").length : 0;
-          return metric("My missed check-ins", count, "Recorded missed windows");
+          return metric("My missed check-ins", count, "Recorded missed windows", "topPriority");
         },
-        activeUsers: () => metric("Active users", activeUsersCount(), "Guards currently on duty"),
-        unviewedIRs: () => metric("Unviewed IRs", unviewedIRCount(), "Incident reports awaiting review"),
-        missedCheckins: () => metric("Missed check-ins", missedCheckinsCount(), "Missed windows logged"),
-        tourViolations: () => metric("Tour violations", state.tourViolations.filter((item) => item.status !== "Closed").length, "Open tour pattern exceptions"),
-        supervisorQueue: () => metric("Supervisor queue", supervisorQueueItems().length, "Overdue, incident, and tour items"),
-        recentActivity: () => metric("Recent activity", (state.activityLog || []).length, "Guard actions feeding the dashboard"),
-        irSevenDays: () => metric("7-day IRs", `${unviewedIRs7.length}/${totalIRs7.length}`, "Unviewed / total over past 7 days"),
-        tourViolationsSevenDays: () => metric("7-day tour violations", tour7, "Tour pattern exceptions"),
-        missedCheckinsSevenDays: () => metric("7-day missed check-ins", missed7, "Missed check-in windows"),
-        accountActiveUsers: () => metric("Active users", state.guards.length, "Provisioned guard/admin users"),
-        activationDate: () => metric("Activation date", account.activationDate, "Account start date"),
-        locations: () => metric("Locations", account.locations.length, account.locations.join(", ")),
-        billingStatus: () => metric("Billing status", account.paidStatus, "Recent bill paid/unpaid state"),
-        packageStatus: () => metric("Package", account.packageName, account.packageStatus)
+        activeUsers: () => metric("Active users", activeUsersCount(), "Guards currently on duty", "shiftBoard"),
+        unviewedIRs: () => metric("Unviewed IRs", unviewedIRCount(), "Incident reports awaiting review", "reports"),
+        missedCheckins: () => metric("Missed check-ins", missedCheckinsCount(), "Missed windows logged", "topPriority"),
+        supervisorRequests: () => metric("Supervisor requested", openSupervisorRequestCount(), "Open guard requests", "topPriority"),
+        tourViolations: () => metric("Tour violations", tourPatternViolationCount(), "Open pattern exceptions", "attention"),
+        missedTours: () => metric("Missed tours", missedTourCount(), "Missed expected tour windows", "attention"),
+        unfinishedReports: () => metric("Unfinished reports", unfinishedReportCount(), "Started but not completed", "attention"),
+        supervisorQueue: () => metric("Supervisor queue", supervisorQueueItems().length, "Open operations items", "topPriority"),
+        recentActivity: () => metric("Recent activity", (state.activityLog || []).length, "Guard actions feeding the dashboard", "activity"),
+        irSevenDays: () => metric("7-day IRs", `${unviewedIRs7.length}/${totalIRs7.length}`, "Unviewed / total over past 7 days", "reports"),
+        tourViolationsSevenDays: () => metric("7-day tour violations", tour7, "Tour pattern exceptions", "attention"),
+        missedCheckinsSevenDays: () => metric("7-day missed check-ins", missed7, "Missed check-in windows", "topPriority"),
+        accountActiveUsers: () => metric("Active users", state.guards.length, "Provisioned guard/admin users", "account"),
+        activationDate: () => metric("Activation date", account.activationDate, "Account start date", "account"),
+        locations: () => metric("Locations", account.locations.length, account.locations.join(", "), "account"),
+        billingStatus: () => metric("Billing status", account.paidStatus, "Recent bill paid/unpaid state", "account"),
+        packageStatus: () => metric("Package", account.packageName, account.packageStatus, "account")
       };
-      return (cardMap[key] || (() => metric(key, "-", "Role dashboard card placeholder")))();
+      return (cardMap[key] || (() => metric(key, "-", "Role dashboard card placeholder", "")))();
     }
 
     function activeUsersCount() {
@@ -1610,12 +1799,28 @@
       return state.checkins.filter((item) => item.status === "Missed").length;
     }
 
+    function openSupervisorRequestCount() {
+      return state.supervisorRequests.filter((item) => item.status === "Open").length;
+    }
+
+    function tourPatternViolationCount() {
+      return state.tourViolations.filter((item) => item.status !== "Closed" && !item.label.toLowerCase().includes("missed")).length;
+    }
+
+    function missedTourCount() {
+      return state.tourViolations.filter((item) => item.status !== "Closed" && item.label.toLowerCase().includes("missed")).length;
+    }
+
+    function unfinishedReportCount() {
+      return state.entries.filter((entry) => !entry.finalized).length;
+    }
+
     function supervisorQueueItems() {
       return [
         ...state.shifts.filter((shift) => !shift.finished && checkinState(shift).kind === "overdue"),
-        ...state.entries.filter((entry) => entry.incident && !entry.finalized),
+        ...state.entries.filter((entry) => entry.reportType === "IR" && !entry.finalized),
         ...state.tourViolations.filter((item) => item.status !== "Closed"),
-        ...state.supervisorRequests.filter((item) => item.status !== "Closed")
+        ...state.supervisorRequests.filter((item) => item.status === "Open")
       ];
     }
 
@@ -1641,7 +1846,7 @@
           tone: entry.incident ? "bad" : "good",
           title: labelFor(entry.type),
           time: entry.time,
-          status: entry.finalized ? "Finalized" : "Draft",
+          status: reportStatus(entry),
           note: entry.note
         }));
       const checkinItems = state.checkins
@@ -1658,18 +1863,84 @@
       return [...reportItems, ...checkinItems].sort((a, b) => a.at - b.at);
     }
 
+    function reportStatus(entry) {
+      if (entry.reportType === "DAR") return entry.finalized ? "Completed" : "Unfinished";
+      return entry.finalized ? "Finalized and locked" : "Needs review";
+    }
+
+    function getActiveReport(shiftId, reportType) {
+      return state.entries
+        .filter((entry) => entry.shiftId === shiftId && entry.reportType === reportType && !entry.finalized)
+        .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))[0] || null;
+    }
+
+    function getLatestReport(shiftId, reportType) {
+      return state.entries
+        .filter((entry) => entry.shiftId === shiftId && entry.reportType === reportType)
+        .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))[0] || null;
+    }
+
     // ---- Actions -----------------------------------------------------------
+    function handleMetricAction(action) {
+      const role = currentRole();
+      if (action === "reports" && role.sections.includes("reports")) {
+        state.screen = "reports";
+        saveState();
+        render();
+        return;
+      }
+      if (action === "account" && role.sections.includes("account")) {
+        state.screen = "account";
+        saveState();
+        render();
+        return;
+      }
+      const targetMap = {
+        topPriority: "topPriorityList",
+        attention: "attentionList",
+        shiftBoard: "shiftBoardPanel",
+        activity: "liveFeed"
+      };
+      const targetId = targetMap[action];
+      if (targetId && $(targetId)) {
+        $(targetId).scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
     function setGuardFlow(flow) {
       state.guardFlow = flow || "home";
       if (flow === "dar") {
         $("reportType").value = "DAR";
-        $("entryType").value = "normal";
+        const active = getActiveReport(state.selectedShiftId, "DAR");
+        state.editingReportId = active ? active.id : null;
+        $("entryType").value = active ? active.type : "normal";
+        $("entryNote").value = active ? active.note : "";
       }
       if (flow === "ir") {
         $("reportType").value = "IR";
-        $("entryType").value = "suspect";
+        const active = getActiveReport(state.selectedShiftId, "IR");
+        state.editingReportId = active ? active.id : null;
+        $("entryType").value = active ? active.type : "suspect";
+        $("entryNote").value = active ? active.note : "";
+      }
+      if (!["dar", "ir"].includes(flow)) {
+        state.editingReportId = null;
       }
       saveState();
+      render();
+    }
+
+    function continueReport(reportId) {
+      const report = state.entries.find((entry) => entry.id === reportId && !entry.finalized);
+      if (!report) return;
+      state.selectedShiftId = report.shiftId;
+      state.editingReportId = report.id;
+      state.guardFlow = report.reportType.toLowerCase();
+      $("reportType").value = report.reportType;
+      $("entryType").value = report.type;
+      $("entryNote").value = report.note;
+      saveState();
+      hydrateShiftSelect();
       render();
     }
 
@@ -1714,7 +1985,12 @@
           checkinId: checkin.id,
           note: "Supervisor requested from hourly check-in.",
           at: checkin.receivedAt,
-          status: "Open"
+          status: "Open",
+          assignedRole: "CFSL",
+          routingScope: `${shift.site}:${shift.post}`,
+          escalateToRole: "CML",
+          acknowledgedAt: null,
+          packageFlag: "supervisor_escalation_add_on"
         });
         const payroll = state.payroll.find((row) => row.shiftId === shift.id);
         if (payroll && !payroll.locked && payroll.status !== "Approved") payroll.status = "Review";
@@ -1722,6 +1998,8 @@
       queueAction("check-in saved", shift.id);
       // Future production integration: notifications can send supervisor-request
       // alerts by SMS, push, email, or in-app inbox from this event.
+      // Routing will assign the active CFSL for the site/group, escalate to CML
+      // if it is not acknowledged, and respect a paid package/add-on flag.
       recordActivity(
         needsSupervisor ? "Supervisor requested" : "Guard check-in received",
         needsSupervisor
@@ -1730,13 +2008,20 @@
       );
     }
 
-    function markShiftOk(shiftId) {
-      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot mark a guard check-in."); return; }
-      const prev = state.selectedShiftId;
-      state.selectedShiftId = shiftId;
-      checkInNow();
-      state.selectedShiftId = prev;
-      hydrateShiftSelect();
+    function acknowledgeShift(shiftId) {
+      if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot acknowledge operations items."); return; }
+      const openRequests = state.supervisorRequests.filter((item) => item.shiftId === shiftId && item.status === "Open");
+      openRequests.forEach((item) => {
+        item.status = "Acknowledged";
+        item.acknowledgedAt = Date.now();
+      });
+      const shift = getShift(shiftId);
+      recordActivity(
+        openRequests.length ? "Supervisor request acknowledged" : "Post acknowledged",
+        openRequests.length
+          ? `${openRequests.length} request(s) for ${getGuard(shift.guardId).name} at ${shift.site} were acknowledged.`
+          : `${getGuard(shift.guardId).name}'s post at ${shift.site} was acknowledged.`
+      );
       saveState();
       render();
     }
@@ -1755,20 +2040,32 @@
         alert("Please type a note for anything unusual or incident-related.");
         return;
       }
-      const entry = {
-        id: crypto.randomUUID(),
-        shiftId: shift.id,
-        reportType: $("reportType").value,
-        type,
-        note: note || "Tour complete. All normal.",
-        time: nowTime(),
-        incident: incidentTypes.has(type) || $("reportType").value === "IR",
-        finalized: false,
-        createdAt: Date.now(),
-        viewedAt: null
-      };
-      state.entries.push(entry);
-      if (type === "unusual") {
+      const reportType = $("reportType").value;
+      let entry = state.entries.find((item) => item.id === state.editingReportId && !item.finalized);
+      const isUpdate = Boolean(entry && entry.shiftId === shift.id && entry.reportType === reportType);
+      if (isUpdate) {
+        entry.type = type;
+        entry.note = note || "Tour complete. All normal.";
+        entry.time = nowTime();
+        entry.incident = incidentTypes.has(type) || reportType === "IR";
+        entry.updatedAt = Date.now();
+      } else {
+        entry = {
+          id: crypto.randomUUID(),
+          shiftId: shift.id,
+          reportType,
+          type,
+          note: note || "Tour complete. All normal.",
+          time: nowTime(),
+          incident: incidentTypes.has(type) || reportType === "IR",
+          finalized: false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          viewedAt: null
+        };
+        state.entries.push(entry);
+      }
+      if (!isUpdate && type === "unusual") {
         state.tourViolations.unshift({
           id: crypto.randomUUID(),
           shiftId: shift.id,
@@ -1782,11 +2079,14 @@
       if (payroll && entry.incident && !payroll.locked) payroll.status = "Review";
       queueAction("report note saved", entry.id);
       recordActivity(
-        `${entry.reportType} note saved`,
-        `${getGuard(shift.guardId).name} added "${labelFor(entry.type)}" at ${shift.site}. Reports updated${entry.incident ? " and payroll moved to review." : "."}`
+        `${entry.reportType} note ${isUpdate ? "updated" : "saved"}`,
+        `${getGuard(shift.guardId).name} ${isUpdate ? "updated" : "added"} "${labelFor(entry.type)}" at ${shift.site}. Reports updated${entry.incident ? " and payroll moved to review." : "."}`
       );
       $("entryNote").value = "";
-      if (state.role === "UL") state.guardFlow = "home";
+      if (state.role === "UL") {
+        state.guardFlow = "home";
+        state.editingReportId = null;
+      }
       saveState();
       render();
     }
@@ -1849,13 +2149,23 @@
     }
 
     function finalizeSelectedReport() {
+      finalizeReportById(state.selectedReportId);
+    }
+
+    function finalizeReportById(reportId) {
       const role = currentRole();
       if (!role.permissions.canFinalizeReports) { alert("This role cannot finalize reports."); return; }
-      const report = visibleEntriesForRole(role).find((entry) => entry.id === state.selectedReportId);
+      const report = visibleEntriesForRole(role).find((entry) => entry.id === reportId);
       if (!report) return;
       report.finalized = true;
+      report.completedAt = Date.now();
       queueAction("report finalized", report.id);
-      recordActivity("Report finalized", `${report.reportType} ${report.id} is locked and ready for printing/export.`);
+      recordActivity(
+        report.reportType === "DAR" ? "DAR completed" : "IR finalized",
+        `${report.reportType} ${report.id} is locked and ready for printing/export.`
+      );
+      state.guardFlow = "home";
+      state.editingReportId = null;
       saveState();
       render();
     }
