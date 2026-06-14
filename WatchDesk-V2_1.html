@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WatchDesk V2.2 - Workflow Clarification Pass</title>
+  <title>WatchDesk V2.2.1 - Guard Flow Cleanup</title>
   <style>
     :root {
       --bg: #edf3f7;
@@ -278,6 +278,42 @@
     }
     .flow-panel.active { display: block; }
     .flow-panel .form { padding: 0; margin: 0; box-shadow: none; border: 0; }
+    .demo-control {
+      display: grid;
+      gap: 5px;
+      padding: 10px 12px;
+      border: 1px solid #efd087;
+      border-radius: 8px;
+      background: #fff8e8;
+    }
+    .demo-control label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+    }
+    .demo-control input { width: 18px; height: 18px; }
+    .field-hint {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .readonly-field {
+      display: grid;
+      gap: 5px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f4f8fb;
+    }
+    .readonly-field span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
     .choice-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -506,8 +542,8 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">Security operations app</p>
-        <h1>WatchDesk V2.2</h1>
-        <p class="subhead">Workflow clarification build: active reports, priority operations queues, and future control-center setup.</p>
+        <h1>WatchDesk V2.2.1</h1>
+        <p class="subhead">Guard flow cleanup: fixed DAR/IR paths, report-specific activities, and production-ready shift ownership.</p>
       </div>
       <div class="top-actions">
         <button id="toggleOnline" class="secondary" type="button">Go offline</button>
@@ -624,27 +660,32 @@
                 <button class="secondary" type="button" data-guard-flow="home">Back</button>
               </div>
               <form id="entryForm" class="form">
-                <label>
-                  Shift
+                <div id="demoModeControl" class="demo-control">
+                  <label>
+                    <input id="demoModeToggle" type="checkbox">
+                    Demo mode enabled
+                  </label>
+                  <span class="field-hint">Demo selector - production will use logged-in guard assignment.</span>
+                </div>
+                <label id="shiftSelectorField">
+                  <span id="shiftSelectorTitle">Shift</span>
+                  <span id="demoSelectorNote" class="field-hint"></span>
                   <select id="shiftSelect"></select>
                 </label>
-                <label>
+                <div id="reportTypeReadonly" class="readonly-field">
+                  <span>Report type</span>
+                  <strong id="reportTypeLabel">DAR - Daily Activity Report</strong>
+                </div>
+                <label id="reportTypeAdminField">
                   Report
-                  <select id="reportType">
+                  <select id="reportTypeAdmin">
                     <option value="DAR">DAR - Daily activity</option>
                     <option value="IR">IR - Incident report</option>
                   </select>
                 </label>
                 <label>
                   Activity
-                  <select id="entryType">
-                    <option value="normal">Tour complete, all normal</option>
-                    <option value="unusual">Something unusual</option>
-                    <option value="fire">Fire</option>
-                    <option value="suspect">Suspicious person</option>
-                    <option value="theft">Theft</option>
-                    <option value="manual">Other note</option>
-                  </select>
+                  <select id="entryType"></select>
                 </label>
                 <label>
                   Notes
@@ -738,6 +779,7 @@
                   <th class="num">Check-ins</th>
                   <th class="num">Missed</th>
                   <th class="num">Incidents</th>
+                  <th class="num">Gross pay</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -805,8 +847,33 @@
   </div>
   <script>
     const STORAGE_KEY = "watchdesk-v2-state";
-    const incidentTypes = new Set(["unusual", "fire", "suspect", "theft"]);
     const MS_MIN = 60000;
+    const REPORT_ACTIVITY_OPTIONS = {
+      DAR: [
+        { value: "normal", label: "Tour complete, all normal" },
+        { value: "unusual", label: "Tour unusual" },
+        { value: "missed_tour", label: "Missed tour" },
+        { value: "door_gate", label: "Door/gate checked" },
+        { value: "visitor", label: "Visitor/contractor logged" },
+        { value: "manual", label: "Manual note" }
+      ],
+      IR: [
+        { value: "suspect", label: "Suspicious person" },
+        { value: "fire", label: "Fire" },
+        { value: "medical", label: "Medical issue" },
+        { value: "theft", label: "Theft" },
+        { value: "property_damage", label: "Property damage" },
+        { value: "trespass", label: "Trespass" },
+        { value: "safety_hazard", label: "Safety hazard" },
+        { value: "other_incident", label: "Other incident" }
+      ]
+    };
+    const incidentTypes = new Set(REPORT_ACTIVITY_OPTIONS.IR.map((option) => option.value));
+    const noteRequiredTypes = new Set(["unusual", "missed_tour", ...incidentTypes]);
+    const REPORT_TYPE_LABELS = {
+      DAR: "DAR - Daily Activity Report",
+      IR: "IR - Incident Report"
+    };
 
     const SECTIONS = {
       admin: "Admin Dashboard",
@@ -952,6 +1019,7 @@
       return {
         screen: "admin",
         guardFlow: "home",
+        demoMode: true,
         online: true,
         role: "SA",
         selectedShiftId: "shift-1",
@@ -1098,6 +1166,36 @@
       };
     }
 
+    function payrollCompensation(row, shift, guard) {
+      const { reg, ot } = effectiveHours(row, shift);
+      const rate = round2(Number(guard.rate) || 0);
+      const overtimeRate = round2(rate * 1.5);
+      const holidayHours = round2(Number(row.holidayHours) || 0);
+      const regularPay = roundMoney(reg * rate);
+      const overtimePay = roundMoney(ot * overtimeRate);
+      const holidayPay = roundMoney(holidayHours * rate);
+      return {
+        reg,
+        ot,
+        holidayHours,
+        totalHours: round2(reg + ot + holidayHours),
+        rate,
+        overtimeRate,
+        regularPay,
+        overtimePay,
+        holidayPay,
+        grossPay: roundMoney(regularPay + overtimePay + holidayPay)
+      };
+    }
+
+    function roundMoney(n) {
+      return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+    }
+
+    function money(n) {
+      return `$${roundMoney(n).toFixed(2)}`;
+    }
+
     function hydrateRoleSelect() {
       $("roleSelect").innerHTML = Object.entries(ROLES)
         .map(([key, r]) => `<option value="${key}">${esc(r.label)}</option>`)
@@ -1160,10 +1258,39 @@
       });
       $("exportJson").addEventListener("click", () => download("watchdesk-v2-data.json", JSON.stringify(state, null, 2), "application/json"));
       $("shiftSelect").addEventListener("change", () => {
+        if (state.role === "UL" && !state.demoMode) {
+          hydrateShiftSelect();
+          return;
+        }
+        const activeFlow = state.guardFlow;
         state.selectedShiftId = $("shiftSelect").value;
         state.editingReportId = null;
+        if (state.role === "UL" && ["dar", "ir"].includes(activeFlow)) {
+          setGuardFlow(activeFlow);
+          return;
+        }
         if (state.role === "UL") state.guardFlow = "home";
         saveState();
+        render();
+      });
+      $("demoModeToggle").addEventListener("change", () => {
+        state.demoMode = $("demoModeToggle").checked;
+        state.editingReportId = null;
+        state.guardFlow = "home";
+        if (!state.demoMode) {
+          // Production integration: Supabase Auth will provide the authenticated
+          // guard identity, and the active shift assignment will come from Postgres.
+          // UL users will not manually choose another guard in production.
+          const assignedShift = myShiftForRole();
+          if (assignedShift) state.selectedShiftId = assignedShift.id;
+        }
+        saveState();
+        hydrateShiftSelect();
+        render();
+      });
+      $("reportTypeAdmin").addEventListener("change", () => {
+        state.editingReportId = null;
+        renderActivityOptions($("reportTypeAdmin").value);
         render();
       });
       document.querySelectorAll("[data-guard-flow]").forEach((button) => {
@@ -1216,6 +1343,7 @@
         if (!saved.supervisorRequests) saved.supervisorRequests = structuredClone(starter.supervisorRequests || []);
         if (!Array.isArray(saved.queue)) saved.queue = [];
         if (!saved.guardFlow) saved.guardFlow = "home";
+        if (!Object.prototype.hasOwnProperty.call(saved, "demoMode")) saved.demoMode = true;
         if (!Object.prototype.hasOwnProperty.call(saved, "editingReportId")) saved.editingReportId = null;
         if (!saved.selectedPayrollShiftId) saved.selectedPayrollShiftId = saved.selectedShiftId || starter.selectedPayrollShiftId;
         if (!ROLES[saved.role].sections.includes(saved.screen)) saved.screen = ROLES[saved.role].defaultSection;
@@ -1235,6 +1363,10 @@
     function visibleShiftsForRole(role = currentRole()) {
       const guardId = role.permissions.guardId;
       if (guardId && !role.permissions.canViewAllReports) {
+        // Demo mode intentionally exposes all sample guards so Raul/Patrick can
+        // test each workflow. Production UL sessions use the authenticated
+        // Supabase user and database shift assignment, never a manual guard picker.
+        if (role.permissions.scope === "own_shift" && state.demoMode) return state.shifts;
         return state.shifts.filter((shift) => shift.guardId === guardId);
       }
       return state.shifts;
@@ -1243,6 +1375,7 @@
     function visibleEntriesForRole(role = currentRole()) {
       const guardId = role.permissions.guardId;
       if (role.permissions.canViewAllReports || !guardId) return state.entries;
+      if (role.permissions.scope === "own_shift" && state.demoMode) return state.entries;
       return state.entries.filter((entry) => getShift(entry.shiftId).guardId === guardId);
     }
 
@@ -1395,8 +1528,15 @@
       $("phoneBadge").className = `pill ${state.online ? "good" : "warn"}`;
       $("currentShiftTitle").textContent = `${guard.name} - ${shift.site}`;
       $("currentShiftMeta").textContent = `${shift.post}, ${shift.start} to ${shift.end}. Check in every ${shift.policyMinutes} min.`;
-      $("shiftSelect").disabled = ulMode;
-      $("reportType").disabled = ulMode;
+      $("demoModeControl").style.display = ulMode ? "grid" : "none";
+      $("demoModeToggle").checked = Boolean(state.demoMode);
+      $("shiftSelectorTitle").textContent = ulMode ? "Demo guard/shift selector" : "Shift";
+      $("demoSelectorNote").textContent = ulMode
+        ? "Demo only: choose Jordan Miles, Riley Chen, or Avery Stone for testing."
+        : "";
+      $("shiftSelect").disabled = ulMode && !state.demoMode;
+      $("reportTypeReadonly").style.display = ulMode ? "grid" : "none";
+      $("reportTypeAdminField").style.display = ulMode ? "none" : "grid";
 
       // Big check-in button reflects how close we are to the window.
       const btn = $("checkInNow");
@@ -1423,9 +1563,14 @@
       $("futureFlow").classList.toggle("active", ulMode && flow === "future");
       $("finishShift").style.display = ulMode && flow === "home" ? "block" : (ulMode ? "none" : "block");
       const editing = state.entries.find((entry) => entry.id === state.editingReportId && !entry.finalized);
+      const reportType = editing
+        ? editing.reportType
+        : (ulMode ? (flow === "ir" ? "IR" : "DAR") : $("reportTypeAdmin").value);
+      $("reportTypeLabel").textContent = REPORT_TYPE_LABELS[reportType];
+      renderActivityOptions(reportType, editing ? editing.type : $("entryType").value);
       $("reportFlowTitle").textContent = editing
         ? `Continue Active ${editing.reportType}`
-        : ($("reportType").value === "IR" ? "Start IR" : "Start DAR");
+        : (reportType === "IR" ? "Start IR" : "Start DAR");
       $("checkinGuardName").textContent = guard.name;
       $("checkinSite").textContent = `${shift.site} - ${shift.post}`;
       $("checkinCurrentTime").textContent = fullDateTime(Date.now());
@@ -1501,15 +1646,23 @@
       }
 
       let totReg = 0, totOt = 0, totIncidents = 0, totPay = 0;
+      let selectedOfficerName = "";
+      let selectedOfficerPay = 0;
       $("payrollRows").innerHTML = rows.length ? rows.map((row) => {
         const shift = getShift(row.shiftId);
         const guard = getGuard(shift.guardId);
         const received = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Received").length;
         const missed = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Missed").length;
         const incidents = state.entries.filter((e) => e.shiftId === shift.id && e.incident).length;
-        const { reg, ot } = effectiveHours(row, shift);
-        totReg += reg; totOt += ot; totIncidents += incidents;
-        totPay += reg * guard.rate + ot * guard.rate * 1.5;
+        const pay = payrollCompensation(row, shift, guard);
+        totReg += pay.reg;
+        totOt += pay.ot;
+        totIncidents += incidents;
+        totPay = roundMoney(totPay + pay.grossPay);
+        if (row.shiftId === state.selectedPayrollShiftId) {
+          selectedOfficerName = guard.name;
+          selectedOfficerPay = pay.grossPay;
+        }
 
         const tone = row.status === "Approved" ? "good" : row.status === "Review" || row.status === "Rejected" ? "bad" : "warn";
         const canAct = permission.canApprovePayroll && !row.locked && period.status !== "Closed";
@@ -1529,22 +1682,24 @@
             <td>${esc(guard.name)}<br><span class="muted">${esc(guard.employee)} - $${guard.rate.toFixed(2)}/hr</span></td>
             <td>${esc(shift.site)}</td>
             <td>${esc(shift.start)}-${esc(shift.end)}</td>
-            <td class="num">${reg.toFixed(2)}</td>
-            <td class="num">${ot.toFixed(2)}</td>
+            <td class="num">${pay.reg.toFixed(2)}</td>
+            <td class="num">${pay.ot.toFixed(2)}</td>
             <td class="num">${received}</td>
             <td class="num">${missed}</td>
             <td class="num">${incidents}</td>
+            <td class="num"><strong>${money(pay.grossPay)}</strong></td>
             <td><span class="tag ${tone}">${esc(row.status)}</span></td>
             <td>${actions}</td>
           </tr>
         `;
-      }).join("") : `<tr><td colspan="10"><div class="empty">This role does not have payroll rows in the prototype.</div></td></tr>`;
+      }).join("") : `<tr><td colspan="11"><div class="empty">This role does not have payroll rows in the prototype.</div></td></tr>`;
 
       $("periodTotals").innerHTML = `
         <div><strong>${totReg.toFixed(2)}</strong>Regular hrs</div>
         <div><strong>${totOt.toFixed(2)}</strong>Overtime hrs</div>
         <div><strong>${totIncidents}</strong>Incidents</div>
-        <div><strong>$${totPay.toFixed(2)}</strong>Est. gross pay</div>
+        <div><strong>${money(totPay)}</strong>Period gross pay</div>
+        <div><strong>${money(selectedOfficerPay)}</strong>Selected officer${selectedOfficerName ? ` - ${esc(selectedOfficerName)}` : ""}</div>
       `;
 
       document.querySelectorAll("[data-payroll-detail]").forEach((row) => {
@@ -1588,8 +1743,7 @@
       const shift = getShift(row.shiftId);
       const guard = getGuard(shift.guardId);
       const incidents = state.entries.filter((entry) => entry.shiftId === shift.id && entry.incident).length;
-      const { reg, ot } = effectiveHours(row, shift);
-      const total = reg + ot;
+      const pay = payrollCompensation(row, shift, guard);
       target.innerHTML = `
         <div class="panel-head">
           <div>
@@ -1605,9 +1759,16 @@
           ${detailCell("Dates worked", formatDate(shift.startedAt))}
           ${detailCell("Time in", clock(shift.startedAt))}
           ${detailCell("Time out", shift.finished ? clock(shift.lastCheckIn) : "Active shift")}
-          ${detailCell("Regular hours", reg.toFixed(2))}
-          ${detailCell("Holiday hours", "0.00 placeholder")}
-          ${detailCell("Total hours", total.toFixed(2))}
+          ${detailCell("Hourly rate", `${money(pay.rate)}/hr`)}
+          ${detailCell("Regular hours", pay.reg.toFixed(2))}
+          ${detailCell("Regular pay", money(pay.regularPay))}
+          ${detailCell("Overtime hours", pay.ot.toFixed(2))}
+          ${detailCell("Overtime rate", `${money(pay.overtimeRate)}/hr`)}
+          ${detailCell("Overtime pay", money(pay.overtimePay))}
+          ${detailCell("Holiday hours", `${pay.holidayHours.toFixed(2)} placeholder`)}
+          ${detailCell("Holiday pay", `${money(pay.holidayPay)} placeholder`)}
+          ${detailCell("Total hours", pay.totalHours.toFixed(2))}
+          ${detailCell("Estimated gross pay", money(pay.grossPay))}
           ${detailCell("Incidents", incidents)}
           ${detailCell("Approval status", row.status)}
         </div>
@@ -1880,6 +2041,38 @@
         .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))[0] || null;
     }
 
+    function selectedReportType() {
+      if (state.role === "UL") return state.guardFlow === "ir" ? "IR" : "DAR";
+      return $("reportTypeAdmin").value;
+    }
+
+    function renderActivityOptions(reportType, selectedType) {
+      const options = REPORT_ACTIVITY_OPTIONS[reportType] || REPORT_ACTIVITY_OPTIONS.DAR;
+      const nextValue = options.some((option) => option.value === selectedType)
+        ? selectedType
+        : options[0].value;
+      $("entryType").innerHTML = options
+        .map((option) => `<option value="${esc(option.value)}">${esc(option.label)}</option>`)
+        .join("");
+      $("entryType").value = nextValue;
+    }
+
+    function canActOnShift(shift, actionLabel) {
+      if (state.role !== "UL") return true;
+      if (state.demoMode) return true;
+
+      // Production integration: the guard identity comes from Supabase Auth,
+      // and the active shift comes from the database assignment. A UL user
+      // cannot select, edit, check in, finish, or finalize another guard's shift.
+      const assignedGuardId = currentRole().permissions.guardId;
+      if (shift && shift.guardId === assignedGuardId) return true;
+      alert(`Field guards cannot ${actionLabel} another guard's shift.`);
+      const assignedShift = myShiftForRole();
+      if (assignedShift) state.selectedShiftId = assignedShift.id;
+      hydrateShiftSelect();
+      return false;
+    }
+
     // ---- Actions -----------------------------------------------------------
     function handleMetricAction(action) {
       const role = currentRole();
@@ -1910,17 +2103,15 @@
     function setGuardFlow(flow) {
       state.guardFlow = flow || "home";
       if (flow === "dar") {
-        $("reportType").value = "DAR";
         const active = getActiveReport(state.selectedShiftId, "DAR");
         state.editingReportId = active ? active.id : null;
-        $("entryType").value = active ? active.type : "normal";
+        renderActivityOptions("DAR", active ? active.type : "normal");
         $("entryNote").value = active ? active.note : "";
       }
       if (flow === "ir") {
-        $("reportType").value = "IR";
         const active = getActiveReport(state.selectedShiftId, "IR");
         state.editingReportId = active ? active.id : null;
-        $("entryType").value = active ? active.type : "suspect";
+        renderActivityOptions("IR", active ? active.type : "suspect");
         $("entryNote").value = active ? active.note : "";
       }
       if (!["dar", "ir"].includes(flow)) {
@@ -1936,8 +2127,7 @@
       state.selectedShiftId = report.shiftId;
       state.editingReportId = report.id;
       state.guardFlow = report.reportType.toLowerCase();
-      $("reportType").value = report.reportType;
-      $("entryType").value = report.type;
+      renderActivityOptions(report.reportType, report.type);
       $("entryNote").value = report.note;
       saveState();
       hydrateShiftSelect();
@@ -1947,6 +2137,7 @@
     function checkInNow() {
       if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot use guard actions."); return; }
       const shift = getShift(state.selectedShiftId);
+      if (!canActOnShift(shift, "check in for")) return;
       if (shift.finished) return;
       createCheckIn(shift, false);
       saveState();
@@ -1956,6 +2147,7 @@
     function saveHourlyCheckIn(needsSupervisor) {
       if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot use guard actions."); return; }
       const shift = getShift(state.selectedShiftId);
+      if (!canActOnShift(shift, "check in for")) return;
       if (shift.finished) return;
       createCheckIn(shift, needsSupervisor);
       state.guardFlow = "home";
@@ -2033,14 +2225,15 @@
         return;
       }
       const shift = getShift($("shiftSelect").value);
+      if (!canActOnShift(shift, "create a report for")) return;
       state.selectedShiftId = shift.id;
       const type = $("entryType").value;
       const note = $("entryNote").value.trim();
-      if (incidentTypes.has(type) && !note) {
+      if (noteRequiredTypes.has(type) && !note) {
         alert("Please type a note for anything unusual or incident-related.");
         return;
       }
-      const reportType = $("reportType").value;
+      const reportType = selectedReportType();
       let entry = state.entries.find((item) => item.id === state.editingReportId && !item.finalized);
       const isUpdate = Boolean(entry && entry.shiftId === shift.id && entry.reportType === reportType);
       if (isUpdate) {
@@ -2065,11 +2258,11 @@
         };
         state.entries.push(entry);
       }
-      if (!isUpdate && type === "unusual") {
+      if (!isUpdate && reportType === "DAR" && ["unusual", "missed_tour"].includes(type)) {
         state.tourViolations.unshift({
           id: crypto.randomUUID(),
           shiftId: shift.id,
-          label: note || "Guard reported an unusual tour pattern.",
+          label: `${labelFor(type)}: ${note || "Guard reported a tour exception."}`,
           at: entry.createdAt,
           status: "Open"
         });
@@ -2100,6 +2293,7 @@
     function finishShift() {
       if (!currentRole().permissions.canUseGuardApp) { alert("This role cannot finish a guard shift."); return; }
       const shift = getShift($("shiftSelect").value);
+      if (!canActOnShift(shift, "finish")) return;
       shift.finished = true;
       shift.status = "Finished";
       const payroll = state.payroll.find((row) => row.shiftId === shift.id);
@@ -2157,6 +2351,7 @@
       if (!role.permissions.canFinalizeReports) { alert("This role cannot finalize reports."); return; }
       const report = visibleEntriesForRole(role).find((entry) => entry.id === reportId);
       if (!report) return;
+      if (!canActOnShift(getShift(report.shiftId), "finalize a report for")) return;
       report.finalized = true;
       report.completedAt = Date.now();
       queueAction("report finalized", report.id);
@@ -2198,15 +2393,35 @@
     }
 
     function exportPayrollCsv() {
-      const rows = [["guard", "employee_id", "rate", "site", "shift", "reg_hours", "ot_hours", "checkins", "missed", "incidents", "status", "period", "period_status"]];
+      const rows = [["guard", "employee_id", "rate", "overtime_rate", "site", "shift", "reg_hours", "regular_pay", "ot_hours", "overtime_pay", "holiday_hours", "holiday_pay", "gross_pay", "checkins", "missed", "incidents", "status", "period", "period_status"]];
       state.payroll.forEach((row) => {
         const shift = getShift(row.shiftId);
         const guard = getGuard(shift.guardId);
         const received = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Received").length;
         const missed = state.checkins.filter((c) => c.shiftId === shift.id && c.status === "Missed").length;
         const incidents = state.entries.filter((e) => e.shiftId === shift.id && e.incident).length;
-        const { reg, ot } = effectiveHours(row, shift);
-        rows.push([guard.name, guard.employee, guard.rate.toFixed(2), shift.site, `${shift.start}-${shift.end}`, reg.toFixed(2), ot.toFixed(2), received, missed, incidents, row.status, state.period.label, state.period.status]);
+        const pay = payrollCompensation(row, shift, guard);
+        rows.push([
+          guard.name,
+          guard.employee,
+          pay.rate.toFixed(2),
+          pay.overtimeRate.toFixed(2),
+          shift.site,
+          `${shift.start}-${shift.end}`,
+          pay.reg.toFixed(2),
+          pay.regularPay.toFixed(2),
+          pay.ot.toFixed(2),
+          pay.overtimePay.toFixed(2),
+          pay.holidayHours.toFixed(2),
+          pay.holidayPay.toFixed(2),
+          pay.grossPay.toFixed(2),
+          received,
+          missed,
+          incidents,
+          row.status,
+          state.period.label,
+          state.period.status
+        ]);
       });
       const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(",")).join("\n");
       download("watchdesk-v2-payroll.csv", csv, "text/csv");
@@ -2225,14 +2440,11 @@
     }
 
     function labelFor(type) {
-      return {
-        normal: "Tour complete, all normal",
-        unusual: "Something unusual",
-        fire: "Fire",
-        suspect: "Suspicious person",
-        theft: "Theft",
-        manual: "Other note"
-      }[type] || type;
+      for (const options of Object.values(REPORT_ACTIVITY_OPTIONS)) {
+        const match = options.find((option) => option.value === type);
+        if (match) return match.label;
+      }
+      return type;
     }
 
     function nowTime() {
