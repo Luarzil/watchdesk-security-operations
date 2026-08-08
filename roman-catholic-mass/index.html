@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#6d1734" />
+  <title>Follow the Roman Catholic Mass</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --card: #ffffff;
+      --ink: #211d1d;
+      --muted: #675e5e;
+      --accent: #6d1734;
+      --accent2: #243f63;
+      --border: #d8d0c8;
+      --gold: #9b742c;
+      --shadow: 0 8px 26px rgba(36, 24, 24, .08);
+      --text-size: 1.17rem;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.65;
+    }
+    body.dark {
+      --bg: #11151b;
+      --card: #1b222b;
+      --ink: #f5f1e8;
+      --muted: #c7c1b8;
+      --accent: #e0a9bd;
+      --accent2: #b5ccec;
+      --border: #3b4652;
+      --gold: #e0bd72;
+      --shadow: 0 8px 26px rgba(0, 0, 0, .28);
+    }
+    header {
+      background: linear-gradient(135deg, #561127, #243f63);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem 1.55rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 7vw, 3.35rem);
+      line-height: 1.08;
+    }
+    header p {
+      margin: .65rem auto 0;
+      max-width: 48rem;
+      font-family: Arial, sans-serif;
+      opacity: .94;
+    }
+    .cross { font-size: 2rem; margin-bottom: .3rem; }
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: .65rem;
+      padding: .7rem;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      font-family: Arial, sans-serif;
+    }
+    .toolbar input {
+      width: 100%;
+      padding: .8rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: .7rem;
+      background: var(--card);
+      color: var(--ink);
+      font-size: 1rem;
+    }
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      justify-content: flex-end;
+    }
+    button, .jump, .back-link {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: .65rem;
+      padding: .68rem .8rem;
+      font: 700 .9rem Arial, sans-serif;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
+      outline: 3px solid #8cb9ef;
+      outline-offset: 2px;
+    }
+    main {
+      width: min(980px, calc(100% - 1.1rem));
+      margin: 1rem auto 4rem;
+    }
+    .quicknav {
+      display: flex;
+      gap: .45rem;
+      overflow-x: auto;
+      padding: .25rem 0 .8rem;
+      scrollbar-width: thin;
+      font-family: Arial, sans-serif;
+    }
+    .quicknav .jump {
+      white-space: nowrap;
+      color: var(--accent2);
+    }
+    .notice, .important {
+      background: var(--card);
+      border-left: .35rem solid var(--accent2);
+      border-radius: .55rem;
+      box-shadow: var(--shadow);
+      padding: .9rem 1rem;
+      margin-bottom: 1rem;
+      font-family: Arial, sans-serif;
+      color: var(--muted);
+    }
+    .important { border-left-color: var(--gold); }
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .55rem;
+      margin: 1rem 0 1.35rem;
+      font-family: Arial, sans-serif;
+    }
+    .legend div {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: .75rem;
+      padding: .7rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .legend strong {
+      display: block;
+      color: var(--accent);
+      font-size: .88rem;
+      letter-spacing: .04em;
+    }
+    h2 {
+      color: var(--accent);
+      font-size: clamp(1.55rem, 4vw, 2.1rem);
+      line-height: 1.2;
+      margin: 2rem 0 .75rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: .35rem;
+    }
+    details.mass-part {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: .85rem;
+      box-shadow: var(--shadow);
+      margin: .78rem 0;
+      overflow: clip;
+    }
+    details.mass-part[open] {
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    }
+    summary {
+      list-style: none;
+      padding: 1rem 1.05rem;
+      cursor: pointer;
+      font-size: 1.17rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--accent2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "+";
+      font: 700 1.5rem Arial, sans-serif;
+      color: var(--accent);
+    }
+    details[open] summary::after { content: "−"; }
+    .part-body {
+      border-top: 1px solid var(--border);
+      padding: 1rem 1.15rem 1.25rem;
+      font-size: var(--text-size);
+    }
+    .posture {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--border));
+      border-radius: 999px;
+      padding: .24rem .62rem;
+      margin: 0 .35rem .65rem 0;
+      color: var(--gold);
+      background: color-mix(in srgb, var(--card) 92%, var(--gold));
+      font: 800 .8rem/1.25 Arial, sans-serif;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+    .cue, .people, .action, .variable {
+      border-radius: .62rem;
+      padding: .78rem .9rem;
+      margin: .65rem 0;
+    }
+    .cue {
+      background: color-mix(in srgb, var(--card) 92%, var(--accent2));
+      border-left: .3rem solid var(--accent2);
+    }
+    .people {
+      background: color-mix(in srgb, var(--card) 89%, var(--accent));
+      border-left: .38rem solid var(--accent);
+      font-weight: 800;
+      font-size: 1.06em;
+    }
+    .action {
+      background: color-mix(in srgb, var(--card) 92%, var(--gold));
+      border-left: .3rem solid var(--gold);
+      font-family: Arial, sans-serif;
+      color: var(--muted);
+    }
+    .variable {
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      font-family: Arial, sans-serif;
+    }
+    .label {
+      display: block;
+      margin-bottom: .2rem;
+      color: var(--muted);
+      font: 800 .75rem/1.2 Arial, sans-serif;
+      letter-spacing: .055em;
+      text-transform: uppercase;
+    }
+    .people .label { color: var(--accent); }
+    .cue .label { color: var(--accent2); }
+    .prayer-lines span { display: block; }
+    .small {
+      color: var(--muted);
+      font: .94rem/1.5 Arial, sans-serif;
+    }
+    .hidden { display: none !important; }
+    .source-list {
+      font-family: Arial, sans-serif;
+      font-size: .94rem;
+    }
+    .source-list a {
+      color: var(--accent2);
+      overflow-wrap: anywhere;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font: .9rem Arial, sans-serif;
+      padding: 1rem;
+    }
+    @media (max-width: 680px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .buttons { justify-content: flex-start; }
+      .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      summary { font-size: 1.12rem; }
+      .part-body { padding: .95rem 1rem 1.15rem; }
+    }
+    @media print {
+      .toolbar, .quicknav, footer, .back-link { display: none; }
+      body { background: white; color: black; }
+      header { background: white; color: black; border-bottom: 2px solid black; }
+      details.mass-part { display: block; box-shadow: none; break-inside: avoid; }
+      details.mass-part > summary::after { display: none; }
+      details.mass-part > .part-body { display: block !important; }
+      main { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="cross" aria-hidden="true">✠</div>
+  <h1>Follow the Roman Catholic Mass</h1>
+  <p>A simple, step-by-step guide to what is happening, what the priest says, what the congregation says, and when to stand, sit, kneel, bow, or make the Sign of the Cross.</p>
+</header>
+
+<div class="toolbar" aria-label="Reading controls">
+  <input id="search" type="search" placeholder="Search the Mass…" aria-label="Search the Mass" />
+  <div class="buttons">
+    <button id="smaller" type="button">A−</button>
+    <button id="larger" type="button">A+</button>
+    <button id="openAll" type="button">Open all</button>
+    <button id="closeAll" type="button">Close all</button>
+    <button id="theme" type="button">Dark mode</button>
+  </div>
+</div>
+
+<main>
+  <nav class="quicknav" aria-label="Mass sections">
+    <a class="jump" href="#before">Before Mass</a>
+    <a class="jump" href="#intro">Introductory Rites</a>
+    <a class="jump" href="#word">Liturgy of the Word</a>
+    <a class="jump" href="#eucharist">Liturgy of the Eucharist</a>
+    <a class="jump" href="#communion">Communion</a>
+    <a class="jump" href="#ending">Concluding Rites</a>
+    <a class="jump" href="#sources">Sources & Notes</a>
+  </nav>
+
+  <div class="notice">
+    <strong>Your words are shown in dark, bold response boxes.</strong> The priest’s changing prayers, the Bible readings, the Psalm response, and some sung settings vary by day. Listen for the cue and follow your parish missal or hymn book when the wording changes.
+  </div>
+
+  <div class="important">
+    Postures below follow the normal practice in Roman Catholic churches in the United States. Local diocesan or parish practice may vary slightly. Follow the priest, deacon, altar servers, and congregation around you. Anyone who cannot stand or kneel because of age, pain, disability, pregnancy, illness, or lack of space may remain in a safe posture.
+  </div>
+
+  <div class="legend" aria-label="Posture key">
+    <div><strong>STAND</strong>Respect, prayer, Gospel</div>
+    <div><strong>SIT</strong>Listen and reflect</div>
+    <div><strong>KNEEL</strong>Adoration and reverence</div>
+    <div><strong>BOW</strong>Reverence</div>
+    <div><strong>SIGN</strong>Sign of the Cross</div>
+    <div><strong>RESPOND</strong>Your words are bold</div>
+  </div>
+
+  <section id="before">
+    <h2>Before Mass Begins</h2>
+    <details class="mass-part" open data-title="before Mass genuflect tabernacle silence prayer">
+      <summary>Entering the Church and Preparing</summary>
+      <div class="part-body">
+        <span class="posture">Genuflect or bow</span>
+        <span class="posture">Sit or kneel</span>
+        <div class="action">
+          If the tabernacle containing the Blessed Sacrament is visible, genuflect toward it before entering your pew. If you are physically unable to genuflect, make a reverent bow.
+        </div>
+        <div class="action">
+          Enter quietly. You may kneel or sit for private prayer. Silence your phone and prepare your heart for Mass.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="intro">
+    <h2>1. Introductory Rites</h2>
+
+    <details class="mass-part" open data-title="entrance procession opening hymn stand">
+      <summary>Entrance Procession</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">What happens</span>The entrance hymn begins and the priest, deacon, and ministers process toward the altar.</div>
+        <div class="action">Stand when the people around you stand, normally as the entrance procession begins.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="sign of the cross beginning Amen">
+      <summary>Sign of the Cross</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <span class="posture">Make the Sign of the Cross</span>
+        <div class="cue"><span class="label">Priest</span>The priest begins in the name of the Father, the Son, and the Holy Spirit.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="greeting and with your spirit">
+      <summary>Liturgical Greeting</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest</span>The priest gives one of the approved greetings, usually ending with “The Lord be with you.”</div>
+        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="penitential act forgiveness sins confession Kyrie Lord mercy breast">
+      <summary>Penitential Act — Asking Forgiveness</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest</span>The priest invites everyone to acknowledge their sins and prepare to celebrate the sacred mysteries.</div>
+        <div class="variable">
+          One of several approved forms may be used. Your parish may pray the Confiteor beginning “I confess to almighty God…,” use short invocations, or use the blessing and sprinkling of water on certain Sundays.
+        </div>
+        <div class="action">
+          When the Confiteor is used, strike your breast three times at the words “through my fault, through my fault, through my most grievous fault.”
+        </div>
+        <div class="people"><span class="label">Congregation — Kyrie</span>
+          Lord, have mercy.<br>
+          Christ, have mercy.<br>
+          Lord, have mercy.
+        </div>
+        <div class="cue"><span class="label">Priest</span>The priest concludes with a prayer asking God to show mercy and lead us to everlasting life.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+        <p class="small">The Penitential Act is not the Sacrament of Penance and does not replace sacramental Confession for mortal sin.</p>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="Gloria Glory to God sung Sundays Advent Lent">
+      <summary>Gloria — “Glory to God”</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest, cantor, or choir</span>The Gloria begins.</div>
+        <div class="action">
+          Sing or recite the Gloria with the congregation, using the words or musical setting in the parish missal or hymn book.
+        </div>
+        <p class="small">The Gloria is normally used on Sundays outside Advent and Lent, and on solemnities and feasts.</p>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="collect opening prayer Amen sit">
+      <summary>Collect — Opening Prayer</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest</span>“Let us pray.” After a brief silence, the priest says the prayer appointed for that day.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+        <div class="action"><strong>Sit</strong> after the prayer is finished.</div>
+      </div>
+    </details>
+  </section>
+
+  <section id="word">
+    <h2>2. Liturgy of the Word</h2>
+
+    <details class="mass-part" open data-title="first reading thanks be to God sit">
+      <summary>First Reading</summary>
+      <div class="part-body">
+        <span class="posture">Sit</span>
+        <div class="cue"><span class="label">Reader</span>The reader proclaims the first Scripture reading, then says, “The word of the Lord.”</div>
+        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="responsorial psalm response cantor">
+      <summary>Responsorial Psalm</summary>
+      <div class="part-body">
+        <span class="posture">Remain seated</span>
+        <div class="cue"><span class="label">Cantor or reader</span>The cantor or reader announces and leads the Psalm response.</div>
+        <div class="people"><span class="label">Congregation</span>Repeat the Psalm response announced for that day.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="second reading thanks be to God Sundays solemnities">
+      <summary>Second Reading</summary>
+      <div class="part-body">
+        <span class="posture">Remain seated</span>
+        <div class="cue"><span class="label">Reader</span>On Sundays and solemnities, a second Scripture reading is normally proclaimed, ending with “The word of the Lord.”</div>
+        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Alleluia Gospel acclamation stand Lent">
+      <summary>Gospel Acclamation</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">Cantor or choir</span>The Alleluia and verse are sung. During Lent, another Gospel acclamation is used instead of Alleluia.</div>
+        <div class="people"><span class="label">Congregation</span>Sing the Alleluia or the response led by the cantor.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Gospel and with your spirit glory to you O Lord sign forehead lips heart">
+      <summary>Gospel</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest or deacon</span>“The Lord be with you.”</div>
+        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+        <div class="cue"><span class="label">Priest or deacon</span>“A reading from the holy Gospel according to…”</div>
+        <div class="people"><span class="label">Congregation</span>Glory to you, O Lord.</div>
+        <div class="action">
+          Make a small cross with your thumb on your forehead, lips, and heart: may the Gospel be in your mind, on your lips, and in your heart.
+        </div>
+        <div class="cue"><span class="label">After the Gospel</span>The priest or deacon says, “The Gospel of the Lord.”</div>
+        <div class="people"><span class="label">Congregation</span>Praise to you, Lord Jesus Christ.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="homily sermon sit">
+      <summary>Homily</summary>
+      <div class="part-body">
+        <span class="posture">Sit</span>
+        <div class="cue"><span class="label">Priest or deacon</span>The homily explains the Scriptures and applies them to Christian faith and life.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="Nicene Creed profession faith stand bow incarnation">
+      <summary>Profession of Faith — Nicene Creed</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="action">Bow deeply during the words about the Son of God becoming incarnate of the Virgin Mary and becoming man.</div>
+        <div class="people prayer-lines"><span class="label">Congregation</span>
+          <span>I believe in one God,</span>
+          <span>the Father almighty,</span>
+          <span>maker of heaven and earth,</span>
+          <span>of all things visible and invisible.</span><br>
+          <span>I believe in one Lord Jesus Christ,</span>
+          <span>the Only Begotten Son of God,</span>
+          <span>born of the Father before all ages.</span>
+          <span>God from God, Light from Light,</span>
+          <span>true God from true God,</span>
+          <span>begotten, not made, consubstantial with the Father;</span>
+          <span>through him all things were made.</span>
+          <span>For us men and for our salvation</span>
+          <span>he came down from heaven,</span>
+          <span>and by the Holy Spirit was incarnate of the Virgin Mary,</span>
+          <span>and became man.</span><br>
+          <span>For our sake he was crucified under Pontius Pilate,</span>
+          <span>he suffered death and was buried,</span>
+          <span>and rose again on the third day</span>
+          <span>in accordance with the Scriptures.</span>
+          <span>He ascended into heaven</span>
+          <span>and is seated at the right hand of the Father.</span>
+          <span>He will come again in glory</span>
+          <span>to judge the living and the dead</span>
+          <span>and his kingdom will have no end.</span><br>
+          <span>I believe in the Holy Spirit,</span>
+          <span>the Lord, the giver of life,</span>
+          <span>who proceeds from the Father and the Son,</span>
+          <span>who with the Father and the Son is adored and glorified,</span>
+          <span>who has spoken through the prophets.</span><br>
+          <span>I believe in one, holy, catholic and apostolic Church.</span>
+          <span>I confess one Baptism for the forgiveness of sins</span>
+          <span>and I look forward to the resurrection of the dead</span>
+          <span>and the life of the world to come. Amen.</span>
+        </div>
+        <p class="small">The Apostles’ Creed may be used on some occasions instead.</p>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="prayer faithful universal intercessions Lord hear our prayer">
+      <summary>Universal Prayer — Prayer of the Faithful</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Reader or deacon</span>Intentions are offered for the Church, the world, those in need, and the local community.</div>
+        <div class="people"><span class="label">Congregation</span>Use the response announced by the reader, commonly: Lord, hear our prayer.</div>
+        <div class="action"><strong>Sit</strong> after the priest’s concluding prayer.</div>
+      </div>
+    </details>
+  </section>
+
+  <section id="eucharist">
+    <h2>3. Liturgy of the Eucharist</h2>
+
+    <details class="mass-part" open data-title="offertory presentation gifts collection sit">
+      <summary>Preparation of the Altar and Gifts</summary>
+      <div class="part-body">
+        <span class="posture">Sit</span>
+        <div class="cue"><span class="label">What happens</span>The altar is prepared. Bread and wine are brought forward. A collection may be taken.</div>
+        <div class="variable">The priest’s prayers at the altar may be said quietly or aloud. If they are said aloud, the congregation may respond, “Blessed be God for ever.”</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="pray brothers sisters sacrifice stand may Lord accept">
+      <summary>Invitation to Prayer Over the Offerings</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">Priest</span>The priest invites the people to pray that the sacrifice may be acceptable to God.</div>
+        <div class="people"><span class="label">Congregation</span>
+          May the Lord accept the sacrifice at your hands for the praise and glory of his name, for our good and the good of all his holy Church.
+        </div>
+        <div class="cue"><span class="label">Priest</span>The priest says the Prayer over the Offerings.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="preface dialogue lift hearts right just">
+      <summary>Preface Dialogue</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest</span>The Lord be with you.</div>
+        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+        <div class="cue"><span class="label">Priest</span>Lift up your hearts.</div>
+        <div class="people"><span class="label">Congregation</span>We lift them up to the Lord.</div>
+        <div class="cue"><span class="label">Priest</span>Let us give thanks to the Lord our God.</div>
+        <div class="people"><span class="label">Congregation</span>It is right and just.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Holy Sanctus kneel Hosanna">
+      <summary>Holy, Holy, Holy — Sanctus</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing while singing</span>
+        <div class="people"><span class="label">Congregation</span>
+          Holy, Holy, Holy Lord God of hosts.<br>
+          Heaven and earth are full of your glory.<br>
+          Hosanna in the highest.<br>
+          Blessed is he who comes in the name of the Lord.<br>
+          Hosanna in the highest.
+        </div>
+        <div class="action"><strong>Kneel</strong> immediately after the Holy, Holy, Holy, following the local custom and the congregation.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Eucharistic prayer consecration kneel bells host chalice bow">
+      <summary>Eucharistic Prayer and Consecration</summary>
+      <div class="part-body">
+        <span class="posture">Kneel</span>
+        <div class="cue"><span class="label">Priest</span>The priest prays the Eucharistic Prayer. The words vary according to the Eucharistic Prayer chosen.</div>
+        <div class="action">
+          Listen prayerfully. At the consecration, the priest shows the consecrated Host and then the Chalice. You may look toward the Lord in adoration and silently pray, “My Lord and my God.”
+        </div>
+        <div class="cue"><span class="label">Priest</span>The priest announces the mystery of faith.</div>
+        <div class="people"><span class="label">Congregation — one of these is used</span>
+          We proclaim your Death, O Lord, and profess your Resurrection until you come again.<br><br>
+          <em>or</em><br><br>
+          When we eat this Bread and drink this Cup, we proclaim your Death, O Lord, until you come again.<br><br>
+          <em>or</em><br><br>
+          Save us, Savior of the world, for by your Cross and Resurrection you have set us free.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Great Amen end Eucharistic prayer stand">
+      <summary>Great Amen</summary>
+      <div class="part-body">
+        <span class="posture">Remain kneeling</span>
+        <div class="cue"><span class="label">Priest</span>The Eucharistic Prayer ends with the doxology as the Host and Chalice are raised.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+        <div class="action"><strong>Stand</strong> after the Great Amen.</div>
+      </div>
+    </details>
+  </section>
+
+  <section id="communion">
+    <h2>4. Communion Rite</h2>
+
+    <details class="mass-part" open data-title="Our Father Lord prayer stand">
+      <summary>The Lord’s Prayer — Our Father</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">Priest</span>The priest introduces the prayer taught by Jesus.</div>
+        <div class="people prayer-lines"><span class="label">Congregation</span>
+          <span>Our Father, who art in heaven,</span>
+          <span>hallowed be thy name;</span>
+          <span>thy kingdom come;</span>
+          <span>thy will be done</span>
+          <span>on earth as it is in heaven.</span>
+          <span>Give us this day our daily bread;</span>
+          <span>and forgive us our trespasses</span>
+          <span>as we forgive those who trespass against us;</span>
+          <span>and lead us not into temptation,</span>
+          <span>but deliver us from evil.</span>
+        </div>
+        <div class="cue"><span class="label">Priest</span>The priest continues with the prayer for deliverance from evil.</div>
+        <div class="people"><span class="label">Congregation</span>
+          For the kingdom, the power and the glory are yours now and for ever.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="sign peace and with your spirit peace be with you">
+      <summary>Sign of Peace</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Priest</span>The peace of the Lord be with you always.</div>
+        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+        <div class="action">
+          When invited, offer a simple sign of peace to the people immediately around you, such as a handshake, nod, or small bow, according to local custom.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Lamb God Agnus Dei kneel mercy peace">
+      <summary>Lamb of God — Agnus Dei</summary>
+      <div class="part-body">
+        <span class="posture">Stand, then follow local posture</span>
+        <div class="people"><span class="label">Congregation</span>
+          Lamb of God, you take away the sins of the world, have mercy on us.<br>
+          Lamb of God, you take away the sins of the world, have mercy on us.<br>
+          Lamb of God, you take away the sins of the world, grant us peace.
+        </div>
+        <div class="action">
+          In many U.S. parishes, the congregation <strong>kneels</strong> after the Lamb of God. Follow the established practice of your diocese and parish.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="Lord not worthy roof soul healed Communion invitation">
+      <summary>Invitation to Holy Communion</summary>
+      <div class="part-body">
+        <span class="posture">Usually kneeling</span>
+        <div class="cue"><span class="label">Priest</span>The priest shows the consecrated Host and invites the faithful to the supper of the Lamb.</div>
+        <div class="people"><span class="label">Priest and Congregation together</span>
+          Lord, I am not worthy that you should enter under my roof, but only say the word and my soul shall be healed.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="receive Communion bow Body Christ Amen Blood Christ">
+      <summary>Receiving Holy Communion</summary>
+      <div class="part-body">
+        <span class="posture">Stand for the procession</span>
+        <span class="posture">Bow your head</span>
+        <div class="action">
+          Join the Communion procession only if properly disposed to receive. As the person immediately before you receives, bow your head reverently.
+        </div>
+        <div class="cue"><span class="label">Minister</span>The Body of Christ.</div>
+        <div class="people"><span class="label">You respond clearly</span>Amen.</div>
+        <div class="cue"><span class="label">If receiving from the Chalice</span>The Blood of Christ.</div>
+        <div class="people"><span class="label">You respond clearly</span>Amen.</div>
+        <div class="action">
+          Holy Communion is normally received standing in the United States, either on the tongue or in the hand. A communicant who chooses to kneel is not to be denied Communion for that reason.
+        </div>
+        <div class="important">
+          Catholics conscious of mortal sin should ordinarily receive sacramental absolution before receiving Holy Communion. Non-Catholics and Catholics not receiving may remain in the pew in prayer; local customs about approaching for a blessing vary.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="after Communion thanksgiving sit kneel silence prayer">
+      <summary>Prayer After Receiving Communion</summary>
+      <div class="part-body">
+        <span class="posture">Sit or kneel</span>
+        <div class="action">
+          Return to your place and pray quietly in thanksgiving. Follow your parish’s custom about sitting or kneeling while Communion continues.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="Prayer after Communion stand Amen">
+      <summary>Prayer After Communion</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">Priest</span>“Let us pray.” The priest says the Prayer after Communion appointed for that day.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+      </div>
+    </details>
+  </section>
+
+  <section id="ending">
+    <h2>5. Concluding Rites</h2>
+
+    <details class="mass-part" open data-title="announcements blessing stand and with your spirit Amen">
+      <summary>Announcements, Greeting, and Blessing</summary>
+      <div class="part-body">
+        <span class="posture">Stand</span>
+        <div class="cue"><span class="label">Priest</span>The Lord be with you.</div>
+        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+        <div class="action">Bow your head if the deacon or priest invites you to do so for a solemn blessing.</div>
+        <div class="cue"><span class="label">Priest</span>The priest blesses the congregation in the name of the Father, the Son, and the Holy Spirit.</div>
+        <div class="people"><span class="label">Congregation</span>Amen.</div>
+      </div>
+    </details>
+
+    <details class="mass-part" open data-title="dismissal go forth Mass ended thanks God">
+      <summary>Dismissal</summary>
+      <div class="part-body">
+        <span class="posture">Remain standing</span>
+        <div class="cue"><span class="label">Deacon or priest</span>One of the approved dismissals is used, such as “Go forth, the Mass is ended.”</div>
+        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
+        <div class="action">
+          Remain until the priest and ministers have reverenced the altar and the procession begins. Join the closing hymn when one is sung.
+        </div>
+      </div>
+    </details>
+
+    <details class="mass-part" data-title="leaving church genuflect bow">
+      <summary>Leaving the Church</summary>
+      <div class="part-body">
+        <span class="posture">Genuflect or bow</span>
+        <div class="action">
+          Before leaving your pew, genuflect toward the tabernacle if the Blessed Sacrament is reserved there. If unable to genuflect, make a reverent bow.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="sources">
+    <h2>Sources & Important Notes</h2>
+    <div class="notice source-list">
+      <p><strong>Roman Catholic sources only:</strong></p>
+      <p>
+        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass" target="_blank" rel="noopener">USCCB — Order of Mass</a><br>
+        <a href="https://www.usccb.org/prayer-and-worship/the-mass/the-priest-at-mass" target="_blank" rel="noopener">USCCB — The Priest at Mass</a><br>
+        <a href="https://www.usccb.org/prayer-and-worship/the-mass/general-instruction-of-the-roman-missal" target="_blank" rel="noopener">USCCB — General Instruction of the Roman Missal</a><br>
+        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass/liturgy-of-the-eucharist/posture-during-the-eucharistic-prayer-and-our-father" target="_blank" rel="noopener">USCCB — Posture During the Eucharistic Prayer and Our Father</a><br>
+        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass/liturgy-of-the-eucharist/the-reception-of-holy-communion-at-mass" target="_blank" rel="noopener">USCCB — Reception of Holy Communion at Mass</a>
+      </p>
+      <p>
+        This is a personal explanatory companion, not a replacement for the Roman Missal, Lectionary, parish missalette, or directions given by the celebrant. The priest’s proper prayers, readings, Psalm, Gospel acclamation, hymns, and certain options change according to the liturgical day.
+      </p>
+      <p>
+        The current English liturgical texts of the Roman Missal are copyrighted by the International Commission on English in the Liturgy Corporation. Longer variable texts are therefore described rather than reproduced here. Use the approved parish missal or worship aid for the complete text used at your celebration.
+      </p>
+    </div>
+    <a class="back-link" href="Roman_Catholic_Prayer_Book_Expanded.html">← Open the Roman Catholic Prayer Book</a>
+  </section>
+</main>
+
+<footer>
+  Prepared as a personal Roman Catholic Mass companion for use in the United States. Roman Catholic sources only.
+</footer>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const body = document.body;
+  const parts = [...document.querySelectorAll('details.mass-part')];
+  const search = document.getElementById('search');
+  let size = Number(localStorage.getItem('massGuideFontSize') || 1.17);
+
+  const applySize = () => root.style.setProperty('--text-size', size.toFixed(2) + 'rem');
+  applySize();
+
+  if (localStorage.getItem('massGuideDarkMode') === 'true') {
+    body.classList.add('dark');
+    document.getElementById('theme').textContent = 'Light mode';
+  }
+
+  document.getElementById('larger').addEventListener('click', () => {
+    size = Math.min(2.1, size + .1);
+    applySize();
+    localStorage.setItem('massGuideFontSize', size);
+  });
+
+  document.getElementById('smaller').addEventListener('click', () => {
+    size = Math.max(.95, size - .1);
+    applySize();
+    localStorage.setItem('massGuideFontSize', size);
+  });
+
+  document.getElementById('openAll').addEventListener('click', () => {
+    parts.filter(p => !p.classList.contains('hidden')).forEach(p => p.open = true);
+  });
+
+  document.getElementById('closeAll').addEventListener('click', () => {
+    parts.forEach(p => p.open = false);
+  });
+
+  document.getElementById('theme').addEventListener('click', (event) => {
+    body.classList.toggle('dark');
+    const dark = body.classList.contains('dark');
+    event.currentTarget.textContent = dark ? 'Light mode' : 'Dark mode';
+    localStorage.setItem('massGuideDarkMode', dark);
+  });
+
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    parts.forEach(part => {
+      const haystack = ((part.dataset.title || '') + ' ' + part.textContent).toLowerCase();
+      const match = !q || haystack.includes(q);
+      part.classList.toggle('hidden', !match);
+      if (q && match) part.open = true;
+    });
+  });
+})();
+</script>
+</body>
+</html>
