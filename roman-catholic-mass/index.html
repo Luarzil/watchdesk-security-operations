@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#6d1734" />
-  <title>Follow the Roman Catholic Mass</title>
+  <title>Roman Catholic Prayer Book</title>
   <style>
     :root {
       --bg: #f6f3ee;
@@ -14,9 +14,8 @@
       --accent: #6d1734;
       --accent2: #243f63;
       --border: #d8d0c8;
-      --gold: #9b742c;
       --shadow: 0 8px 26px rgba(36, 24, 24, .08);
-      --text-size: 1.17rem;
+      --prayer-size: 1.22rem;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -25,37 +24,27 @@
       color: var(--ink);
       background: var(--bg);
       font-family: Georgia, "Times New Roman", serif;
-      line-height: 1.65;
+      line-height: 1.68;
     }
     body.dark {
       --bg: #11151b;
       --card: #1b222b;
       --ink: #f5f1e8;
       --muted: #c7c1b8;
-      --accent: #e0a9bd;
-      --accent2: #b5ccec;
+      --accent: #d39ab0;
+      --accent2: #a9c1df;
       --border: #3b4652;
-      --gold: #e0bd72;
       --shadow: 0 8px 26px rgba(0, 0, 0, .28);
     }
     header {
       background: linear-gradient(135deg, #561127, #243f63);
       color: white;
+      padding: 2rem 1rem 1.5rem;
       text-align: center;
-      padding: 2rem 1rem 1.55rem;
     }
-    header h1 {
-      margin: 0;
-      font-size: clamp(2rem, 7vw, 3.35rem);
-      line-height: 1.08;
-    }
-    header p {
-      margin: .65rem auto 0;
-      max-width: 48rem;
-      font-family: Arial, sans-serif;
-      opacity: .94;
-    }
-    .cross { font-size: 2rem; margin-bottom: .3rem; }
+    header h1 { margin: 0; font-size: clamp(2rem, 7vw, 3.4rem); line-height: 1.08; }
+    header p { margin: .65rem auto 0; max-width: 46rem; font-family: Arial, sans-serif; opacity: .92; }
+    .cross { font-size: 2rem; margin-bottom: .35rem; }
     .toolbar {
       position: sticky;
       top: 0;
@@ -78,13 +67,8 @@
       color: var(--ink);
       font-size: 1rem;
     }
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .4rem;
-      justify-content: flex-end;
-    }
-    button, .jump, .back-link {
+    .buttons { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+    button, .jump {
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--ink);
@@ -94,14 +78,8 @@
       cursor: pointer;
       text-decoration: none;
     }
-    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
-      outline: 3px solid #8cb9ef;
-      outline-offset: 2px;
-    }
-    main {
-      width: min(980px, calc(100% - 1.1rem));
-      margin: 1rem auto 4rem;
-    }
+    button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px solid #8cb9ef; outline-offset: 2px; }
+    main { width: min(980px, calc(100% - 1.1rem)); margin: 1rem auto 4rem; }
     .quicknav {
       display: flex;
       gap: .45rem;
@@ -110,41 +88,16 @@
       scrollbar-width: thin;
       font-family: Arial, sans-serif;
     }
-    .quicknav .jump {
-      white-space: nowrap;
-      color: var(--accent2);
-    }
-    .notice, .important {
+    .quicknav .jump { white-space: nowrap; color: var(--accent2); }
+    .notice {
       background: var(--card);
       border-left: .35rem solid var(--accent2);
       border-radius: .55rem;
       box-shadow: var(--shadow);
       padding: .9rem 1rem;
-      margin-bottom: 1rem;
+      margin-bottom: 1.1rem;
       font-family: Arial, sans-serif;
       color: var(--muted);
-    }
-    .important { border-left-color: var(--gold); }
-    .legend {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: .55rem;
-      margin: 1rem 0 1.35rem;
-      font-family: Arial, sans-serif;
-    }
-    .legend div {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: .75rem;
-      padding: .7rem;
-      box-shadow: var(--shadow);
-      text-align: center;
-    }
-    .legend strong {
-      display: block;
-      color: var(--accent);
-      font-size: .88rem;
-      letter-spacing: .04em;
     }
     h2 {
       color: var(--accent);
@@ -154,7 +107,7 @@
       border-bottom: 2px solid var(--border);
       padding-bottom: .35rem;
     }
-    details.mass-part {
+    details.prayer {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: .85rem;
@@ -162,9 +115,7 @@
       margin: .78rem 0;
       overflow: clip;
     }
-    details.mass-part[open] {
-      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
-    }
+    details.prayer[open] { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
     summary {
       list-style: none;
       padding: 1rem 1.05rem;
@@ -179,117 +130,110 @@
       gap: 1rem;
     }
     summary::-webkit-details-marker { display: none; }
-    summary::after {
-      content: "+";
-      font: 700 1.5rem Arial, sans-serif;
-      color: var(--accent);
-    }
+    summary::after { content: "+"; font: 700 1.5rem Arial, sans-serif; color: var(--accent); }
     details[open] summary::after { content: "−"; }
-    .part-body {
+    .prayer-text {
       border-top: 1px solid var(--border);
       padding: 1rem 1.15rem 1.25rem;
-      font-size: var(--text-size);
+      font-size: var(--prayer-size);
     }
-    .posture {
-      display: inline-flex;
-      align-items: center;
-      gap: .35rem;
-      border: 1px solid color-mix(in srgb, var(--gold) 55%, var(--border));
-      border-radius: 999px;
-      padding: .24rem .62rem;
-      margin: 0 .35rem .65rem 0;
-      color: var(--gold);
-      background: color-mix(in srgb, var(--card) 92%, var(--gold));
-      font: 800 .8rem/1.25 Arial, sans-serif;
-      letter-spacing: .035em;
-      text-transform: uppercase;
+    .prayer-text p { margin: 0 0 1rem; }
+    .prayer-text p:last-child { margin-bottom: 0; }
+    .line { display: block; }
+    .attribution, .source-note, .rubric {
+      font: italic .94rem/1.5 Arial, sans-serif;
+      color: var(--muted);
+      margin-top: .9rem;
     }
-    .cue, .people, .action, .variable {
-      border-radius: .62rem;
-      padding: .78rem .9rem;
-      margin: .65rem 0;
-    }
-    .cue {
+    .rubric { font-style: normal; font-weight: 700; }
+    .mystery-grid { display: grid; gap: .8rem; }
+    .mystery {
+      border: 1px solid var(--border);
+      border-radius: .65rem;
+      padding: .8rem 1rem;
       background: color-mix(in srgb, var(--card) 92%, var(--accent2));
-      border-left: .3rem solid var(--accent2);
     }
-    .people {
-      background: color-mix(in srgb, var(--card) 89%, var(--accent));
-      border-left: .38rem solid var(--accent);
-      font-weight: 800;
-      font-size: 1.06em;
-    }
-    .action {
-      background: color-mix(in srgb, var(--card) 92%, var(--gold));
-      border-left: .3rem solid var(--gold);
-      font-family: Arial, sans-serif;
-      color: var(--muted);
-    }
-    .variable {
-      border: 1px dashed var(--border);
-      color: var(--muted);
-      font-family: Arial, sans-serif;
-    }
-    .label {
-      display: block;
-      margin-bottom: .2rem;
-      color: var(--muted);
-      font: 800 .75rem/1.2 Arial, sans-serif;
-      letter-spacing: .055em;
-      text-transform: uppercase;
-    }
-    .people .label { color: var(--accent); }
-    .cue .label { color: var(--accent2); }
-    .prayer-lines span { display: block; }
-    .small {
-      color: var(--muted);
-      font: .94rem/1.5 Arial, sans-serif;
-    }
+    .mystery h3 { margin: 0 0 .35rem; color: var(--accent2); font-size: 1.1rem; }
+    .mystery ol { margin: .25rem 0 0 1.35rem; padding: 0; }
+    .mystery li { margin: .3rem 0; }
+    .source-list { font-family: Arial, sans-serif; }
+    .source-list a { color: var(--accent2); overflow-wrap: anywhere; }
+    footer { text-align: center; color: var(--muted); font: .9rem Arial, sans-serif; padding: 1rem; }
     .hidden { display: none !important; }
-    .source-list {
-      font-family: Arial, sans-serif;
-      font-size: .94rem;
-    }
-    .source-list a {
-      color: var(--accent2);
-      overflow-wrap: anywhere;
-    }
-    footer {
-      text-align: center;
-      color: var(--muted);
-      font: .9rem Arial, sans-serif;
-      padding: 1rem;
-    }
-    @media (max-width: 680px) {
+    @media (max-width: 640px) {
       .toolbar { grid-template-columns: 1fr; }
       .buttons { justify-content: flex-start; }
-      .legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       summary { font-size: 1.12rem; }
-      .part-body { padding: .95rem 1rem 1.15rem; }
+      .prayer-text { padding: .95rem 1rem 1.15rem; }
     }
     @media print {
-      .toolbar, .quicknav, footer, .back-link { display: none; }
+      .toolbar, .quicknav, .notice, footer { display: none; }
       body { background: white; color: black; }
       header { background: white; color: black; border-bottom: 2px solid black; }
-      details.mass-part { display: block; box-shadow: none; break-inside: avoid; }
-      details.mass-part > summary::after { display: none; }
-      details.mass-part > .part-body { display: block !important; }
+      details.prayer { display: block; box-shadow: none; break-inside: avoid; }
+      details.prayer > summary::after { display: none; }
+      details.prayer > .prayer-text { display: block !important; }
       main { width: 100%; }
+    }
+
+    .need-panel {
+      background: linear-gradient(135deg, color-mix(in srgb, var(--card) 94%, var(--accent)), var(--card));
+      border: 1px solid var(--border);
+      border-radius: .85rem;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      margin: 1rem 0 1.35rem;
+      font-family: Arial, sans-serif;
+    }
+    .need-panel h2 {
+      border: 0;
+      padding: 0;
+      margin: 0 0 .35rem;
+      font-size: 1.25rem;
+      color: var(--accent2);
+    }
+    .need-panel p { margin: 0 0 .75rem; color: var(--muted); }
+    .need-buttons { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .need-buttons button { color: var(--accent2); }
+    .subheading {
+      font: 700 1.1rem/1.35 Arial, sans-serif;
+      color: var(--accent2);
+      margin: 1.2rem .15rem .45rem;
+    }
+    .approval {
+      display: inline-block;
+      padding: .18rem .5rem;
+      margin-top: .55rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font: 700 .77rem/1.25 Arial, sans-serif;
+      letter-spacing: .02em;
+      color: var(--accent2);
+      background: color-mix(in srgb, var(--card) 88%, var(--accent2));
+    }
+    .pastoral-note {
+      background: color-mix(in srgb, var(--card) 94%, var(--accent2));
+      border-left: .35rem solid var(--accent);
+      border-radius: .55rem;
+      padding: .9rem 1rem;
+      margin: .65rem 0 1rem;
+      font-family: Arial, sans-serif;
+      color: var(--muted);
     }
   </style>
 </head>
 <body>
 <header>
   <div class="cross" aria-hidden="true">✠</div>
-  <h1>Follow the Roman Catholic Mass</h1>
-  <p>A simple, step-by-step guide to what is happening, what the priest says, what the congregation says, and when to stand, sit, kneel, bow, or make the Sign of the Cross.</p>
+  <h1>Roman Catholic Prayer Book</h1>
+  <p>Large, clear, mobile-friendly prayers for personal devotion before or after Mass and throughout the day.</p>
 </header>
 
 <div class="toolbar" aria-label="Reading controls">
-  <input id="search" type="search" placeholder="Search the Mass…" aria-label="Search the Mass" />
+  <input id="search" type="search" placeholder="Search prayers…" aria-label="Search prayers" />
   <div class="buttons">
-    <button id="smaller" type="button">A−</button>
-    <button id="larger" type="button">A+</button>
+    <button id="smaller" type="button" aria-label="Make prayer text smaller">A−</button>
+    <button id="larger" type="button" aria-label="Make prayer text larger">A+</button>
     <button id="openAll" type="button">Open all</button>
     <button id="closeAll" type="button">Close all</button>
     <button id="theme" type="button">Dark mode</button>
@@ -297,548 +241,857 @@
 </div>
 
 <main>
-  <nav class="quicknav" aria-label="Mass sections">
-    <a class="jump" href="#before">Before Mass</a>
-    <a class="jump" href="#intro">Introductory Rites</a>
-    <a class="jump" href="#word">Liturgy of the Word</a>
-    <a class="jump" href="#eucharist">Liturgy of the Eucharist</a>
-    <a class="jump" href="#communion">Communion</a>
-    <a class="jump" href="#ending">Concluding Rites</a>
+  <nav class="quicknav" aria-label="Prayer sections">
+    <a class="jump" href="mass.html">Follow the Mass</a>
+    <a class="jump" href="#photos">From Your Photos</a>
+    <a class="jump" href="#rosary">The Rosary</a>
+    <a class="jump" href="#marriage">Marriage & Family</a>
+    <a class="jump" href="#hardship">Life’s Difficulties</a>
+    <a class="jump" href="#healing">Illness & Protection</a>
+    <a class="jump" href="#official">Additional Catholic Prayers</a>
     <a class="jump" href="#sources">Sources & Notes</a>
   </nav>
 
   <div class="notice">
-    <strong>Your words are shown in dark, bold response boxes.</strong> The priest’s changing prayers, the Bible readings, the Psalm response, and some sung settings vary by day. Listen for the cue and follow your parish missal or hymn book when the wording changes.
+    This collection is intentionally Roman Catholic. The photographed prayers were transcribed and cleaned for readability. The expanded sections use traditional Catholic prayers from approved prayer books with an Imprimatur, prayers historically approved by Roman Pontiffs, and official Catholic sources. No prayers from other denominations have been added.
   </div>
 
-  <div class="important">
-    Postures below follow the normal practice in Roman Catholic churches in the United States. Local diocesan or parish practice may vary slightly. Follow the priest, deacon, altar servers, and congregation around you. Anyone who cannot stand or kneel because of age, pain, disability, pregnancy, illness, or lack of space may remain in a safe posture.
+  <div class="need-panel" aria-label="Find a prayer by need">
+    <h2>Find a Prayer for What You Are Facing</h2>
+    <p>Tap a need below. Matching prayers will open automatically.</p>
+    <div class="need-buttons">
+      <button type="button" data-prayer-search="marriage">Difficult marriage</button>
+      <button type="button" data-prayer-search="family">Family</button>
+      <button type="button" data-prayer-search="anxiety">Anxiety</button>
+      <button type="button" data-prayer-search="grief">Grief</button>
+      <button type="button" data-prayer-search="illness">Illness</button>
+      <button type="button" data-prayer-search="financial hardship">Financial hardship</button>
+      <button type="button" data-prayer-search="temptation">Temptation</button>
+      <button type="button" data-prayer-search="protection">Protection</button>
+      <button type="button" data-prayer-search="">Show all</button>
+    </div>
   </div>
 
-  <div class="legend" aria-label="Posture key">
-    <div><strong>STAND</strong>Respect, prayer, Gospel</div>
-    <div><strong>SIT</strong>Listen and reflect</div>
-    <div><strong>KNEEL</strong>Adoration and reverence</div>
-    <div><strong>BOW</strong>Reverence</div>
-    <div><strong>SIGN</strong>Sign of the Cross</div>
-    <div><strong>RESPOND</strong>Your words are bold</div>
-  </div>
 
-  <section id="before">
-    <h2>Before Mass Begins</h2>
-    <details class="mass-part" open data-title="before Mass genuflect tabernacle silence prayer">
-      <summary>Entering the Church and Preparing</summary>
-      <div class="part-body">
-        <span class="posture">Genuflect or bow</span>
-        <span class="posture">Sit or kneel</span>
-        <div class="action">
-          If the tabernacle containing the Blessed Sacrament is visible, genuflect toward it before entering your pew. If you are physically unable to genuflect, make a reverent bow.
+  <section id="universal">
+    <h2>A Universal Prayer for All Things Necessary to Salvation</h2>
+    <div class="notice">
+      <strong>Pinned prayer:</strong> A prayer attributed to Pope Clement XI in 1721. It presents a summary of the Christian life.
+    </div>
+
+    <details class="prayer" open data-title="Universal Prayer all things necessary salvation Pope Clement XI Christian life faith trust love wisdom justice mercy power temptation holiness death heaven">
+      <summary>A Universal Prayer for All Things Necessary to Salvation</summary>
+      <div class="prayer-text">
+        <p class="source-note"><em>A Prayer attributed to Pope Clement XI in 1721, it presents a summary of the Christian Life.</em></p>
+
+        <p>
+          <span class="line">Lord I believe in you: increase my faith.</span>
+          <span class="line">I trust in you: strengthen my trust.</span>
+          <span class="line">I love you: let me love you more and more.</span>
+          <span class="line">I am sorry for my sins: deepen my sorrow.</span>
+        </p>
+
+        <p>
+          <span class="line">I worship you as my first beginning,</span>
+          <span class="line">I long for you as my last end,</span>
+          <span class="line">I praise you as my constant helper,</span>
+          <span class="line">And call on you as my loving protector.</span>
+        </p>
+
+        <p>
+          <span class="line">Guide me by your wisdom,</span>
+          <span class="line">Correct me with your justice,</span>
+          <span class="line">Comfort me with your mercy,</span>
+          <span class="line">Protect me with your power.</span>
+        </p>
+
+        <p>
+          <span class="line">I offer you, Lord, my thoughts, to be fixed on you;</span>
+          <span class="line">My words: to have you for their theme;</span>
+          <span class="line">My actions: to reflect my love for you;</span>
+          <span class="line">My sufferings: to be endured for your greater glory.</span>
+        </p>
+
+        <p>
+          <span class="line">I want to do what you ask of me:</span>
+          <span class="line">In the way you ask,</span>
+          <span class="line">For as long as you ask,</span>
+          <span class="line">Because you ask it.</span>
+        </p>
+
+        <p>
+          <span class="line">Lord, enlighten my understanding,</span>
+          <span class="line">Strengthen my will,</span>
+          <span class="line">Purify my heart,</span>
+          <span class="line">and make me holy.</span>
+        </p>
+
+        <p>
+          <span class="line">Help me to repent of my past sins</span>
+          <span class="line">And to resist temptation in the future.</span>
+          <span class="line">Help me to rise above my human weaknesses</span>
+          <span class="line">And to grow stronger as a Christian.</span>
+        </p>
+
+        <p>
+          <span class="line">Let me love you, my Lord and my God,</span>
+          <span class="line">And see myself as I really am:</span>
+          <span class="line">A pilgrim in this world,</span>
+          <span class="line">A Christian called to respect and love</span>
+          <span class="line">All whose lives I touch,</span>
+          <span class="line">Those under my authority,</span>
+          <span class="line">My friends and my enemies.</span>
+        </p>
+
+        <p>
+          <span class="line">Help me to conquer anger with gentleness,</span>
+          <span class="line">Greed by generosity,</span>
+          <span class="line">Apathy by fervor.</span>
+          <span class="line">Help me to forget myself</span>
+          <span class="line">And reach out toward others.</span>
+        </p>
+
+        <p>
+          <span class="line">Make me prudent in planning,</span>
+          <span class="line">Courageous in taking risks.</span>
+          <span class="line">Make me patient in suffering, unassuming in prosperity.</span>
+        </p>
+
+        <p>
+          <span class="line">Keep me, Lord, attentive at prayer,</span>
+          <span class="line">Temperate in food and drink,</span>
+          <span class="line">Diligent in my work,</span>
+          <span class="line">Firm in my good intentions.</span>
+        </p>
+
+        <p>
+          <span class="line">Let my conscience by clear,</span>
+          <span class="line">My conduct without fault,</span>
+          <span class="line">My speech blameless,</span>
+          <span class="line">My life well-ordered.</span>
+          <span class="line">Put me on guard against my human weaknesses.</span>
+          <span class="line">Let me cherish your love for me,</span>
+          <span class="line">Keep your law,</span>
+          <span class="line">And come at last to your salvation.</span>
+        </p>
+
+        <p>
+          <span class="line">Teach me to realize that this world is passing,</span>
+          <span class="line">That my true future is the happiness of heaven,</span>
+          <span class="line">That life on earth is short,</span>
+          <span class="line">And the life to come is eternal.</span>
+        </p>
+
+        <p>
+          <span class="line">Help me to prepare for death</span>
+          <span class="line">With a proper fear of judgement,</span>
+          <span class="line">But a greater trust in your goodness.</span>
+          <span class="line">Lead me safely through death</span>
+          <span class="line">To the endless joy of heaven.</span>
+        </p>
+
+        <p>
+          <span class="line">Grant this through Christ our Lord.</span>
+          <span class="line">Amen.</span>
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <section id="photos">
+    <h2>Prayers From Your Photos</h2>
+
+    <details class="prayer" data-title="The Memorare Mary Marian">
+      <summary>The Memorare</summary>
+      <div class="prayer-text">
+        <p>Remember, O most gracious Virgin Mary, that never was it known that anyone who fled to your protection, implored your help, or sought your intercession, was left unaided. Inspired by this confidence, I fly unto you, O Virgin of virgins, my Mother. To you I come; before you I stand sinful and sorrowful. O Mother of the Word Incarnate! Despise not my petitions, but in your mercy hear and answer me. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer to Saint Michael Archangel Pope Leo XIII protection">
+      <summary>Prayer to Saint Michael the Archangel</summary>
+      <div class="prayer-text">
+        <p>Saint Michael, the Archangel, defend us in battle, be our defense against the wickedness and snares of the devil. May God rebuke him, we humbly pray; and do you, O Prince of the heavenly host, by the power of God, thrust into Hell Satan and the other evil spirits who prowl about the world for the ruin of souls. Amen.</p>
+        <p class="attribution">Attributed on the prayer card to Pope Leo XIII (1810–1903).</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Hail Holy Queen Salve Regina Mary">
+      <summary>Hail, Holy Queen</summary>
+      <div class="prayer-text">
+        <p>Hail, Holy Queen, Mother of Mercy, our life, our sweetness, and our hope! To you do we cry, poor banished children of Eve; to you do we send up our sighs, mourning and weeping in this vale of tears. Turn, then, most gracious advocate, your eyes of mercy toward us; and after this our exile, show unto us the blessed fruit of your womb, Jesus. O clement, O loving, O sweet Virgin Mary! Pray for us, O holy Mother of God, that we may be made worthy of the promises of Christ.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Act of Contrition confession repentance sin forgiveness">
+      <summary>Act of Contrition</summary>
+      <div class="prayer-text">
+        <p>O my God, I am heartily sorry for having offended you. I detest all my sins because of your just punishments. But most of all because they offend you, my God, who are all good and deserving of all my love. I firmly resolve, with the help of your grace, to sin no more and to avoid the near occasions of sin. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Anima Christi Soul of Christ Eucharist Communion">
+      <summary>Anima Christi</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Soul of Christ, sanctify me;</span>
+          <span class="line">Body of Christ, save me;</span>
+          <span class="line">Blood of Christ, inebriate me;</span>
+          <span class="line">Water from the side of Christ, wash me;</span>
+          <span class="line">Passion of Christ, strengthen me;</span>
+          <span class="line">O good Jesus, hear me;</span>
+          <span class="line">Within your wounds hide me;</span>
+          <span class="line">Separated from you, let me never be;</span>
+          <span class="line">From the evil one protect me;</span>
+          <span class="line">At the hour of my death, call me;</span>
+          <span class="line">And close to you bid me;</span>
+          <span class="line">That with your saints, I may be, praising you forever and ever. Amen.</span>
+        </p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer Before the Crucifix Jesus wounds Psalm 22">
+      <summary>Prayer Before the Crucifix</summary>
+      <div class="prayer-text">
+        <p>Behold, O kind and gentle Jesus, I kneel before you and pray that you would impress upon my heart the virtues of faith, hope and charity, with true repentance for my sins and a firm purpose of amendment. At the same time, with sorrow I meditate on your five precious wounds, having in mind the words which David spoke in prophecy: “They have pierced my hands and my feet. I can count all my bones” (Psalm 22).</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer for Vocations priesthood service Cardinal Bernardin">
+      <summary>Prayer for Vocations</summary>
+      <div class="prayer-text">
+        <p>Lord of the harvest, your Word finds a home in our hearts, calls us into community and invites us to generous service of the human family. Bless with courage and spirit your priestly people, called to full participation in the one Body of Christ. May many choose to respond in public service to your call offered in Jesus’ name. Amen.</p>
+        <p class="attribution">Cardinal Joseph L. Bernardin (1928–1996).</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer for All Needs Clement of Rome needy oppressed sick hungry">
+      <summary>Prayer for All Needs</summary>
+      <div class="prayer-text">
+        <p>We beg you, Lord, to help and defend us. Deliver the oppressed. Pity the insignificant. Raise the fallen. Show yourself to the needy. Heal the sick. Bring back those of your people who have gone astray. Feed the hungry. Lift up the weak. Take off the prisoners’ chains.</p>
+        <p>May every nation come to know that you alone are God, that Jesus is your Child, that we are your people, the sheep that you pasture. Amen.</p>
+        <p class="attribution">Clement of Rome.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Morning Offering Holy Trinity daily prayer">
+      <summary>Morning Offering</summary>
+      <div class="prayer-text">
+        <p>Most holy and Adorable Trinity, one God in three Persons, I firmly believe that you are here present; I adore you with the most profound humility; I praise you and give you thanks with all my heart for the favors you have bestowed on me. Your goodness has brought me safely to the beginning of this day.</p>
+        <p>Behold, O Lord, I offer you my whole being and in particular all my thoughts, words and actions, together with the crosses and contradictions as I may meet with in the course of this day. Give them, O Lord, your blessing; may your divine love animate them and may they tend to the greater honor and glory of your sovereign majesty. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer of Saint Patrick breastplate Christ with me">
+      <summary>Prayer of Saint Patrick</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Christ be with me, Christ before me,</span>
+          <span class="line">Christ behind me, Christ within me,</span>
+          <span class="line">Christ beneath me, Christ above me,</span>
+          <span class="line">Christ on my right, Christ on my left,</span>
+          <span class="line">Christ where I lie, Christ where I sit,</span>
+          <span class="line">Christ where I arise,</span>
+          <span class="line">Christ in the heart of everyone who thinks of me,</span>
+          <span class="line">Christ in every eye that sees me,</span>
+          <span class="line">Christ in the ear that hears me.</span>
+        </p>
+        <p>Salvation is of the Lord. Salvation is of the Christ. May your salvation, O Lord, be ever with us.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Evening Prayer to God the Father night bedtime">
+      <summary>Evening Prayer to God the Father</summary>
+      <div class="prayer-text">
+        <p>O eternal God and ruler of all creation, you have allowed me to reach this hour. Forgive the sins I have committed this day by word, deed or thought. Purify me, O Lord, from every spiritual and physical stain. Grant that I may rise from this sleep to glorify you by my deeds throughout my entire lifetime, and that I be victorious over every spiritual and physical enemy.</p>
+        <p>Deliver me, O Lord, from all vain thoughts and from evil desires, for yours is the kingdom, and the power, and the glory, Father, Son, and Holy Spirit, now and forever. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="For the Needy Saint Thomas Aquinas charity humility">
+      <summary>For the Needy</summary>
+      <div class="prayer-text">
+        <p>Grant, Lord, that I may gladly share what I have with the needy, humbly ask for what I need from him who has, sincerely admit the evil I have done, calmly bear the evil I suffer, not envy my neighbor for his blessings, and thank you unceasingly whenever you hear my prayer.</p>
+        <p class="attribution">St. Thomas Aquinas (1225–1274).</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Let Us Not Be Blinded Pope John XXIII poor sick orphans charity">
+      <summary>Let Us Not Be Blinded</summary>
+      <div class="prayer-text">
+        <p>O Lord, do not let us turn into “broken cisterns” that can hold no water… do not let us be so blinded by the enjoyment of the good things of earth that our hearts become insensible to the cry of the poor, of the sick, of orphaned children and of those innumerable brothers and sisters of ours who lack the necessary minimum to eat, to clothe their nakedness, and to gather their family together under one roof.</p>
+        <p class="attribution">Pope John XXIII (1881–1963).</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer for the Elderly aging seniors health hope">
+      <summary>Prayer for the Elderly</summary>
+      <div class="prayer-text">
+        <p>All-powerful and living God, in whom we live and move and have our being, we thank you and praise you for giving <strong>[name or names]</strong> long years, lived in faith and in doing good. Grant that they may have the loving support of their relatives and friends, that in good health they may be cheerful, and in poor health not lose hope. Sustained by the help of your blessing, let them spend their old age giving praise to your name. We ask this through Christ our Lord. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="God's Blessing of One's Daily Work Saint Joseph labor job work">
+      <summary>God’s Blessing of One’s Daily Work</summary>
+      <div class="prayer-text">
+        <p>O Lord, my God, creator and ruler of the universe, it is your will that human beings accept the duty of work. May the work I do bring growth in this life to me and those I love and help to extend the kingdom of Christ. Give all persons work that draws them to you and to each other in cheerful service.</p>
+        <p>I unite all my work with the sacrifice of Jesus in the Mass that it may be pleasing to you and give you glory. I beg your blessing upon all my efforts. With Saint Joseph as my example and guide, help me to do the work you have asked and come to the reward you have prepared. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Prayer for the Sick illness healing health patience hope">
+      <summary>Prayer for the Sick</summary>
+      <div class="prayer-text">
+        <p>Lord, our God, you sent your Son into the world to bear our infirmities and to endure our sufferings. For your servants who are sick, we ask that your blessing will give them strength to overcome their weakness through the power of patience and the comfort of hope and that with your aid they will soon be restored to health. We ask this through Christ our Lord. Amen.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Act of Faith Catholic creed belief">
+      <summary>Act of Faith</summary>
+      <div class="prayer-text">
+        <p>O my God, I firmly believe that you are One God in Three Divine Persons, Father, Son, and the Holy Spirit; I believe that your Divine Son became man, and died for our sins, and that he will come again to judge the living and the dead. I believe these and all the truths which the Holy Catholic Church teaches, because you have revealed them, Who can neither deceive nor be deceived.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Act of Hope mercy grace eternal life">
+      <summary>Act of Hope</summary>
+      <div class="prayer-text">
+        <p>O my God, relying on your almighty power and infinite mercy and promises, I hope to obtain pardon of my sins, the help of your grace, and life everlasting, through the merits of Jesus Christ, my Lord and Redeemer.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Act of Love charity neighbor forgiveness">
+      <summary>Act of Love</summary>
+      <div class="prayer-text">
+        <p>O my God, I love you above all things, with my whole heart and soul, because you are all-good and worthy of all love. I love my neighbor as myself for the love of you. I forgive all who have injured me and ask pardon of all whom I have injured.</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Call to Holiness Prayer Holy Spirit justice living water bread of life">
+      <summary>Call to Holiness Prayer</summary>
+      <div class="prayer-text">
+        <p>You, O divine Breath, dwell within our hearts; with strong love, you assuage our fears. You call us to holiness, to justice, and integrity, to free those bound by oppression, to bring light where ignorance and darkness dwell. Come! Drink from the streams of Living Water. Come! Feast of the Bread of Life. Amen.</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="rosary">
+    <h2>The Rosary</h2>
+
+    <details class="prayer" open data-title="How to Pray the Rosary steps beads decades">
+      <summary>How to Pray the Rosary</summary>
+      <div class="prayer-text">
+        <ol>
+          <li>Make the Sign of the Cross.</li>
+          <li>Holding the crucifix, pray the Apostles’ Creed.</li>
+          <li>On the first bead, pray the Our Father.</li>
+          <li>On the next three beads, pray three Hail Marys.</li>
+          <li>Pray the Glory Be.</li>
+          <li>For each decade: announce the mystery, pray one Our Father, ten Hail Marys, and one Glory Be while meditating on the mystery.</li>
+          <li>Conclude with the Hail, Holy Queen and the Sign of the Cross.</li>
+        </ol>
+      </div>
+    </details>
+
+    <details class="prayer" open data-title="Rosary mysteries joyful luminous sorrowful glorious">
+      <summary>Mysteries of the Rosary</summary>
+      <div class="prayer-text mystery-grid">
+        <div class="mystery">
+          <h3>The Joyful Mysteries</h3>
+          <ol>
+            <li>The Annunciation (Luke 1:30–33)</li>
+            <li>The Visitation (Luke 1:50–53)</li>
+            <li>The Nativity (Luke 2:10–11)</li>
+            <li>The Presentation (Luke 2:29–32)</li>
+            <li>The Finding of Jesus in the Temple (Luke 2:48–52)</li>
+          </ol>
         </div>
-        <div class="action">
-          Enter quietly. You may kneel or sit for private prayer. Silence your phone and prepare your heart for Mass.
+        <div class="mystery">
+          <h3>The Luminous Mysteries</h3>
+          <ol>
+            <li>The Baptism of the Lord in the Jordan (2 Corinthians 5:21; Matthew 3:17)</li>
+            <li>The Wedding Feast of Cana (John 2:1–12)</li>
+            <li>The Proclamation of the Kingdom of God (Mark 1:15; Mark 2:3–13; Luke 7:47–48; John 20:22–23)</li>
+            <li>The Transfiguration (Luke 9:35)</li>
+            <li>The Institution of the Eucharist (John 13:1)</li>
+          </ol>
+        </div>
+        <div class="mystery">
+          <h3>The Sorrowful Mysteries</h3>
+          <ol>
+            <li>The Agony in the Garden (Matthew 26:38–39)</li>
+            <li>The Scourging at the Pillar (John 19:1)</li>
+            <li>The Crowning with Thorns (Mark 15:16–17)</li>
+            <li>The Carrying of the Cross (John 19:17)</li>
+            <li>The Crucifixion (John 19:28–30)</li>
+          </ol>
+        </div>
+        <div class="mystery">
+          <h3>The Glorious Mysteries</h3>
+          <ol>
+            <li>The Resurrection (Mark 16:6–8)</li>
+            <li>The Ascension (Acts 1:10–11)</li>
+            <li>The Coming of the Holy Spirit (Acts 2:1–4)</li>
+            <li>The Assumption of Mary (Song of Songs 2:3–6)</li>
+            <li>The Coronation of Mary (Luke 1:51–54)</li>
+          </ol>
         </div>
       </div>
     </details>
   </section>
 
-  <section id="intro">
-    <h2>1. Introductory Rites</h2>
 
-    <details class="mass-part" open data-title="entrance procession opening hymn stand">
-      <summary>Entrance Procession</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">What happens</span>The entrance hymn begins and the priest, deacon, and ministers process toward the altar.</div>
-        <div class="action">Stand when the people around you stand, normally as the entrance procession begins.</div>
+  <section id="marriage">
+    <h2>Marriage &amp; Family</h2>
+    <div class="pastoral-note">
+      For a marriage under serious strain, begin with the Prayer of Married People, the Consecration to the Holy Family, and the Prayer for Charity and Patience. Prayer belongs together with honest conversation, the sacraments, and help from a Catholic priest, deacon, or diocesan marriage ministry. Violence, threats, or coercive control require immediate attention to safety.
+    </div>
+
+    <details class="prayer" data-title="difficult marriage married couple matrimony peace reconciliation husband wife covenant">
+      <summary>Prayer of Married People</summary>
+      <div class="prayer-text">
+        <p>Holy Helpers, powerful intercessors at the throne of God, by whose providence we were indissolubly joined in holy wedlock through the sacramental bonds of matrimony; obtain for us, through your intercession, the grace to dwell together in mutual love and peace, and to fulfill faithfully the duties of our state of life; that, following the example of the saints and elect who lived in wedlock, we may merit God’s grace and blessing by a virtuous life here on earth, and united in heaven praise and bless Him forever. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
       </div>
     </details>
 
-    <details class="mass-part" open data-title="sign of the cross beginning Amen">
+    <details class="prayer" data-title="difficult marriage family consecration peace concord love home Holy Family Jesus Mary Joseph Leo XIII">
+      <summary>Consecration to the Holy Family</summary>
+      <div class="prayer-text">
+        <p>O Jesus, our most loving Redeemer, who, having come to enlighten the world with Your teaching and example, willed to pass the greater part of Your life in humility and subjection to Mary and Joseph in the poor home of Nazareth, thus sanctifying the family that was to be an example for all Christian families, graciously receive our family as it dedicates and consecrates itself to You this day.</p>
+        <p>Defend us, guard us, and establish among us holy fear, true peace, and concord in Christian love, so that, by conforming ourselves to the divine pattern of Your family, all of us without exception may attain eternal happiness.</p>
+        <p>Mary, dear Mother of Jesus and our Mother, by your kindly intercession make this humble offering acceptable in the sight of Jesus, and obtain for us His graces and blessings.</p>
+        <p>O Saint Joseph, most holy guardian of Jesus and Mary, assist us by your prayers in all our spiritual and temporal necessities, so that we may praise our divine Savior Jesus, together with Mary and you, for all eternity. Amen.</p>
+        <p class="rubric">Traditionally followed by the Our Father, Hail Mary, and Glory Be, three times.</p>
+        <p class="approval">Formula approved under Pope Leo XIII, 1892</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="family home protection marriage children household Christian family Pope Leo XIII danger faith hope charity">
+      <summary>Prayer for a Christian Family</summary>
+      <div class="prayer-text">
+        <p>God of goodness and mercy, we commend to Your all-powerful protection our home, our family, and all that we possess. Bless us all as You blessed the Holy Family of Nazareth.</p>
+        <p>O Jesus, our most holy Redeemer, by the love with which You became man in order to save us, and by the mercy through which You died for us upon the cross, we entreat You to bless our home, our family, and our household. Preserve us from evil and from every snare; preserve us from disaster, hatred, violence, famine, and war.</p>
+        <p>Let none of us die without the holy sacraments. Bless us, that we may openly confess the faith that sanctifies us, never falter in hope even amid pain and affliction, and ever grow in love for You and in charity toward our neighbor. O Jesus, bless us and protect us.</p>
+        <p>O Mary, Mother of grace and mercy, bless us; protect us against the evil spirit; lead us by the hand through this vale of tears; reconcile us with your divine Son; commend us to Him, that we may be made worthy of His promises.</p>
+        <p>Saint Joseph, guardian of our Savior, guardian of His most holy Mother, and head of the Holy Family, intercede for us; bless and protect our home always.</p>
+        <p>Saint Michael, defend us against the malice of hell. Saint Gabriel, obtain for us the grace to seek the holy will of God. Saint Raphael, preserve us from ill health and danger to life. Holy guardian angels, keep us day and night in the way of salvation. Holy patrons, pray for us before the throne of God.</p>
+        <p>Bless this house, God our Father, who created us; divine Son, who suffered for us upon the cross; Holy Spirit, who sanctified us in Baptism. May God, in His three divine Persons, preserve our bodies, purify our souls, direct our hearts, and lead us to everlasting life.</p>
+        <p>Glory be to the Father, and to the Son, and to the Holy Spirit. Amen.</p>
+        <p class="approval">Approved under Pope Leo XIII, January 19, 1889</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="family duties unity difficult marriage harmony charity Catholic Church faith Jesus Mary Joseph Leo XIII">
+      <summary>Prayer to the Holy Family for Christian Duties</summary>
+      <div class="prayer-text">
+        <p>Jesus, Mary, and Joseph, bless us and grant us the grace to love the holy Church as we ought, above all earthly things, and always to show our love for her by our deeds.</p>
+        <p>Jesus, Mary, and Joseph, bless us and grant us the grace to profess openly, courageously, and without human respect the faith we received as a gift in holy Baptism.</p>
+        <p>Jesus, Mary, and Joseph, bless us and grant us the grace to share in the defense and propagation of the faith whenever duty calls, by word, sacrifice, and the witness of our lives.</p>
+        <p>Jesus, Mary, and Joseph, bless us and grant us the grace to love one another as we ought, and bring us into harmony of thought, will, and action under the guidance of the Church.</p>
+        <p>Jesus, Mary, and Joseph, bless us and grant us the grace to conform our lives to the commandments of God and the teachings of the Church, so that we may always live in charity. Amen.</p>
+        <p class="approval">Approved under Pope Leo XIII, May 17, 1890</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="parents children sons daughters family protection parenting faith holiness">
+      <summary>Prayer of Parents for Their Children</summary>
+      <div class="prayer-text">
+        <p>Holy Helpers, assist me in giving thanks to God for blessing me with children. Having received them from Him, it is my duty to train them for His service. Therefore, I commend them to your special protection.</p>
+        <p>Guard them from sin, help them to know and fulfill their duties, and preserve them from all harm of body and soul. Pray that they may be and remain children of God. For me, obtain the grace always to care for them well, to edify them by good example, to correct them wisely, to preserve their innocence, and to instruct them in piety, so that they and I may together enjoy the eternal happiness of heaven. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="children parents mother father elderly family honor obedience gratitude">
+      <summary>Prayer of Children for Their Parents</summary>
+      <div class="prayer-text">
+        <p>Holy Helpers, mighty intercessors with God in every necessity, God has commanded children to love, honor, and obey their parents. Our Lord and Savior Jesus Christ Himself gave the example of submission and obedience by being subject to His Mother and foster father. I commend myself to your powerful intercession and ask you to obtain for me the grace to follow His example.</p>
+        <p>For my parents I implore protection from every evil of body and soul, a long and fruitful life, and a holy death. Reward them for all the care, anxiety, labor, and trouble they have patiently borne for my sake with the eternal crown of heavenly glory. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="short family prayer imitation Holy Family death eternal life Pope Leo XIII">
+      <summary>Short Prayer in Honor of the Holy Family</summary>
+      <div class="prayer-text">
+        <p>Grant us, O Lord Jesus, faithfully to imitate the example of Your Holy Family, so that in the hour of our death, in the company of Your glorious Virgin Mother and Saint Joseph, we may deserve to be received by You into the eternal dwelling places. Amen.</p>
+        <p class="approval">Approved under Pope Leo XIII, March 25, 1897</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Jesus Mary Joseph family death protection agony peace short invocation">
+      <summary>Invocations to Jesus, Mary, and Joseph</summary>
+      <div class="prayer-text">
+        <p><span class="line">Jesus, Mary, and Joseph, I give you my heart and my soul.</span><span class="line">Jesus, Mary, and Joseph, assist me in my last agony.</span><span class="line">Jesus, Mary, and Joseph, may I breathe forth my soul in peace with you. Amen.</span></p>
+        <p class="approval">Approved under Pope Pius VII, August 26, 1814</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="family protection death Holy Family Roman Missal home">
+      <summary>For the Protection of the Holy Family</summary>
+      <div class="prayer-text">
+        <p>Grant unto us, Lord Jesus, ever to follow the example of Your Holy Family, that in the hour of our death Your glorious Virgin Mother, together with blessed Joseph, may come to meet us, and that we may be worthily received by You into everlasting dwellings; who live and reign forever and ever. Amen.</p>
+        <p class="approval">Traditional prayer from the Roman Missal</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="hardship">
+    <h2>Life’s Difficulties, Grief &amp; Perseverance</h2>
+
+    <details class="prayer" data-title="challenges difficulties trials suffering heavy burden discouragement distress grief hope Holy Helpers">
+      <summary>Prayer in All Difficulties and Trials</summary>
+      <div class="prayer-text">
+        <p>Great friends of God, Holy Helpers, humbly saluting and venerating you, I implore your help and intercession. Bring my prayers before the throne of the Most Holy Trinity, so that in all the difficulties and trials of life I may experience the mercy of the eternal Father, the love of the incarnate Son, and the assistance of the Holy Spirit; and that despondency may not depress me when God’s wise decree places a heavy burden upon my shoulders.</p>
+        <p>Help me to overcome temptation and to leave this world trusting in God’s mercy, so that I may join you in heaven and praise Him forever and ever. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="grief soul oppressed sadness distress sorrow fear depression hope Holy Helpers">
+      <summary>When the Soul Is Oppressed With Grief</summary>
+      <div class="prayer-text">
+        <p>Great friends and servants of God, Holy Helpers, I confidently implore your aid. I am surrounded by difficulties, and my soul is oppressed with grief.</p>
+        <p>By the penitential lives you led, the sufferings you endured, and your holy deaths, pray for me. Obtain for me forgiveness of my sins and perseverance to the end in God’s grace. Protect me against the assaults of the evil one, and help me to live and die in faith, hope, and charity, so that through the mercy of Christ I may enter eternal life. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="perseverance difficult life challenges endurance hope grace">
+      <summary>Prayer for Perseverance</summary>
+      <div class="prayer-text">
+        <p>O God, whose mercies are infinite and whose goodness is without limit, grant me the grace of perseverance in Your love and service to the end. Do not despise my prayer, but graciously hear and answer it. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="God's will surrender fidelity trust challenge uncertainty decision Mary Pope Pius IX Leo XIII">
+      <summary>Prayer for Fidelity and Conformity to God’s Will</summary>
+      <div class="prayer-text">
+        <p>O Lord Almighty, who permit evil and draw good from it, hear our humble prayers and grant that we may remain faithful to You until death. Grant us also, through the intercession of the Most Holy Mary, the strength always to conform ourselves to Your most holy will. Amen.</p>
+        <p class="approval">Approved under Popes Pius IX and Leo XIII</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="surrender resignation God's will acceptance challenge loss grief short prayer">
+      <summary>Act of Resignation to the Will of God</summary>
+      <div class="prayer-text">
+        <p>May the most just, most high, and most adorable will of God be in all things done, praised, and magnified forever. Amen.</p>
+        <p class="approval">Approved under Pope Pius VII, May 19, 1818</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="difficult marriage patience charity anger conflict forgiveness love family neighbor">
+      <summary>Prayer for Charity and Patience</summary>
+      <div class="prayer-text">
+        <p>O God of charity, who will that I love my neighbor for Your sake, grant me the grace to be animated by that charity which embraces all and excludes none; which is patient and kind; which is not envious, arrogant, self-seeking, or easily provoked; which does not rejoice in wrongdoing but rejoices in the truth; which bears all things, believes all things, hopes all things, endures all things, and never fails. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909; based on 1 Corinthians 13</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="courage fear people human respect workplace challenge faith public pressure">
+      <summary>Prayer for Courage and Freedom From Human Respect</summary>
+      <div class="prayer-text">
+        <p>Merciful God, who gave Your saints the grace to fulfill Your will regardless of human respect, grant that through their intercession we may obtain the courage to resist the fear of human opinion and always serve You with a fearless heart. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="needs afflictions trouble distress compassionate Jesus Sacred Heart sorrow help">
+      <summary>O Most Compassionate Jesus</summary>
+      <div class="prayer-text">
+        <p>O most compassionate Jesus, You alone are our salvation, our life, and our resurrection. We implore You, therefore, do not forsake us in our needs and afflictions; but by the agony of Your most Sacred Heart and by the sorrows of Your Immaculate Mother, assist Your servants whom You have redeemed by Your most precious Blood. Amen.</p>
+        <p class="approval">Approved under Pope Pius IX, October 6, 1870</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="financial hardship poverty unemployment work money bills destitution providence Saint Eustachius">
+      <summary>Prayer in Poverty and Financial Hardship</summary>
+      <div class="prayer-text">
+        <p>Heroic servant of God, Saint Eustachius, you were cast from earthly prosperity into deep poverty and bore the bitter bread of destitution without murmuring against God’s providence.</p>
+        <p>Intercede for me, that in every condition I may resign myself to the holy will of God, and especially that I may bear poverty and its consequences with patience, trusting in divine providence and remaining faithful to Him who humbles and exalts, chastises and heals, sends trials and consolations, and promises eternal life to those who follow Him. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="healing">
+    <h2>Illness, Anxiety, Temptation &amp; Protection</h2>
+
+    <details class="prayer" data-title="illness healing health suffering pain sick body soul Holy Helpers">
+      <summary>Prayer in Illness</summary>
+      <div class="prayer-text">
+        <p>Compassionate Holy Helpers, who restored health to so many through the power of the name of Jesus, behold me suffering from bodily illness and from wounds of the soul. Implore the kind and merciful Good Samaritan, our Lord Jesus Christ, to heal the wounds of my soul by washing them in His most precious Blood and to quicken my spirit by His sanctifying grace.</p>
+        <p>If it is God’s holy will and for the welfare of my soul, let me experience the powerful effect of your intercession, so that, restored to health, I may serve God with greater fervor. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="sick person illness hospital surgery healing caregiver intercession patient">
+      <summary>Prayer for a Sick Person</summary>
+      <div class="prayer-text">
+        <p>Merciful Holy Helpers, look kindly upon me as I implore your intercession for a sick person. Our Lord and Redeemer Jesus Christ went about healing and doing good. Offer to His Sacred Heart the sufferings of the person for whom I pray, and ask Him to restore health of body and to infuse the grace of salvation into the soul.</p>
+        <p>If God in His providence should dispose otherwise, implore for this sick person patience in illness, resignation to the divine will, and the grace of a holy death. Assist this person in every trial and conduct this soul safely to the throne of the Almighty. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="anxiety anxious restless heart conscience worry peace Saint Dionysius">
+      <summary>Prayer for Peace of an Anxious Heart</summary>
+      <div class="prayer-text">
+        <p>Glorious servant of God, Saint Dionysius, implore for me a continual growth in the knowledge and love of Jesus, so that my restless heart may experience the peace that He alone can give.</p>
+        <p>Help me by your intercession to serve God with a willing heart, to devote myself to Him with abiding love, and thereby to attain the eternal happiness of heaven. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="temptation addiction sin purity courage protection Saint Vitus">
+      <summary>Prayer Against Temptation</summary>
+      <div class="prayer-text">
+        <p>Saint Vitus, glorious martyr of Christ, you were exposed to violent and dangerous temptations, but through the fear of God and love of Jesus you overcame them.</p>
+        <p>By the love of Jesus, assist me with your powerful intercession to overcome temptations to evil, to avoid every occasion of sin, and to preserve the robe of sanctifying grace, so that I may one day enjoy the vision of God promised to the pure of heart. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="night protection home family danger evil angels sleep peace">
+      <summary>Night Prayer for Home and Family Protection</summary>
+      <div class="prayer-text">
+        <p>Protect me, my family, and all people during this night. Through the intercession of the Blessed Virgin Mary and all the saints, preserve us from every danger of body and soul. Keep away sickness, fire, calamity, violence, and the assaults of the evil one. Into Your hands I commend my body and soul; let me rest in the holy wounds of Christ.</p>
+        <p>Visit, we beseech You, O Lord, this home, and drive far from it every snare of the enemy. Let Your holy angels dwell here to keep us in peace, and may Your blessing remain upon us always. Through Christ our Lord. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="before sleep bedtime night protection Saint Alphonsus Mary angels">
+      <summary>Prayer Before Retiring</summary>
+      <div class="prayer-text">
+        <p>My Lord and God, Jesus Christ, I adore You and thank You for all the graces You have granted me today. I offer You my rest and every moment of this night, and I implore You to preserve me from all sin.</p>
+        <p>I place myself within the wound of Your sacred side and beneath the protecting mantle of Mary, my Mother. May Your holy angels assist me and watch over my peace, and may Your holy blessing remain with me. Amen.</p>
+        <p class="approval">Prayer of Saint Alphonsus; approved under Pope Leo XIII, 1898</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="Sacred Heart Jesus perseverance love mercy sin contrition Eucharist challenge">
+      <summary>Prayer to the Sacred Heart for Perseverance</summary>
+      <div class="prayer-text">
+        <p>Adorable Heart of Jesus, abyss of love and mercy, pardon my ingratitude. You, my Creator, gave Your Blood and Your life for me and continue to offer Yourself for me in the Holy Eucharist.</p>
+        <p>Wound my heart with deep sorrow for my sins and a living love for You. Through Your tears and Your Blood, give me the grace to persevere in Your love until my last breath. Amen.</p>
+        <p class="approval">Prayer of Saint Alphonsus in a Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+
+    <details class="prayer" data-title="illness patience suffering doctor medicine Saint Pantaleon health">
+      <summary>Prayer Through Saint Pantaleon for the Sick</summary>
+      <div class="prayer-text">
+        <p>O God, who gave Saint Pantaleon the grace to practice charity toward his neighbor and made him a special patron of the sick, grant that we also may show charity through works of mercy. Through his intercession, preserve us from sickness; but if it is Your will that illness should afflict us, give us the grace to bear it patiently and let it serve the salvation of our souls. Amen.</p>
+        <p class="approval">Roman Catholic prayer book with Imprimatur, 1909</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="official">
+    <h2>Additional Catholic Prayers</h2>
+
+    <details class="prayer" data-title="Sign of the Cross Trinity">
       <summary>Sign of the Cross</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <span class="posture">Make the Sign of the Cross</span>
-        <div class="cue"><span class="label">Priest</span>The priest begins in the name of the Father, the Son, and the Holy Spirit.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
+      <div class="prayer-text"><p>In the name of the Father, and of the Son, and of the Holy Spirit. Amen.</p></div>
+    </details>
+
+    <details class="prayer" data-title="Our Father Lord's Prayer">
+      <summary>Our Father</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Our Father, who art in heaven,</span>
+          <span class="line">hallowed be thy name;</span>
+          <span class="line">thy kingdom come,</span>
+          <span class="line">thy will be done</span>
+          <span class="line">on earth as it is in heaven.</span>
+          <span class="line">Give us this day our daily bread,</span>
+          <span class="line">and forgive us our trespasses,</span>
+          <span class="line">as we forgive those who trespass against us;</span>
+          <span class="line">and lead us not into temptation,</span>
+          <span class="line">but deliver us from evil. Amen.</span>
+        </p>
       </div>
     </details>
 
-    <details class="mass-part" open data-title="greeting and with your spirit">
-      <summary>Liturgical Greeting</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest</span>The priest gives one of the approved greetings, usually ending with “The Lord be with you.”</div>
-        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
+    <details class="prayer" data-title="Hail Mary Ave Maria">
+      <summary>Hail Mary</summary>
+      <div class="prayer-text">
+        <p>Hail Mary, full of grace, the Lord is with you; blessed are you among women, and blessed is the fruit of your womb, Jesus. Holy Mary, Mother of God, pray for us sinners now and at the hour of our death. Amen.</p>
       </div>
     </details>
 
-    <details class="mass-part" open data-title="penitential act forgiveness sins confession Kyrie Lord mercy breast">
-      <summary>Penitential Act — Asking Forgiveness</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest</span>The priest invites everyone to acknowledge their sins and prepare to celebrate the sacred mysteries.</div>
-        <div class="variable">
-          One of several approved forms may be used. Your parish may pray the Confiteor beginning “I confess to almighty God…,” use short invocations, or use the blessing and sprinkling of water on certain Sundays.
-        </div>
-        <div class="action">
-          When the Confiteor is used, strike your breast three times at the words “through my fault, through my fault, through my most grievous fault.”
-        </div>
-        <div class="people"><span class="label">Congregation — Kyrie</span>
-          Lord, have mercy.<br>
-          Christ, have mercy.<br>
-          Lord, have mercy.
-        </div>
-        <div class="cue"><span class="label">Priest</span>The priest concludes with a prayer asking God to show mercy and lead us to everlasting life.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-        <p class="small">The Penitential Act is not the Sacrament of Penance and does not replace sacramental Confession for mortal sin.</p>
+    <details class="prayer" data-title="Glory Be Doxology Holy Trinity">
+      <summary>Glory Be</summary>
+      <div class="prayer-text"><p>Glory be to the Father, and to the Son, and to the Holy Spirit, as it was in the beginning, is now, and ever shall be, world without end. Amen.</p></div>
+    </details>
+
+    <details class="prayer" data-title="Apostles Creed profession faith">
+      <summary>Apostles’ Creed</summary>
+      <div class="prayer-text">
+        <p>I believe in God, the Father almighty, Creator of heaven and earth, and in Jesus Christ, his only Son, our Lord, who was conceived by the Holy Spirit, born of the Virgin Mary, suffered under Pontius Pilate, was crucified, died and was buried; he descended into hell; on the third day he rose again from the dead; he ascended into heaven, and is seated at the right hand of God the Father almighty; from there he will come to judge the living and the dead.</p>
+        <p>I believe in the Holy Spirit, the holy catholic Church, the communion of saints, the forgiveness of sins, the resurrection of the body, and life everlasting. Amen.</p>
       </div>
     </details>
 
-    <details class="mass-part" data-title="Gloria Glory to God sung Sundays Advent Lent">
-      <summary>Gloria — “Glory to God”</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest, cantor, or choir</span>The Gloria begins.</div>
-        <div class="action">
-          Sing or recite the Gloria with the congregation, using the words or musical setting in the parish missal or hymn book.
-        </div>
-        <p class="small">The Gloria is normally used on Sundays outside Advent and Lent, and on solemnities and feasts.</p>
+    <details class="prayer" data-title="Nicene Creed Mass profession faith consubstantial">
+      <summary>Nicene Creed</summary>
+      <div class="prayer-text">
+        <p>I believe in one God, the Father almighty, maker of heaven and earth, of all things visible and invisible.</p>
+        <p>I believe in one Lord Jesus Christ, the Only Begotten Son of God, born of the Father before all ages. God from God, Light from Light, true God from true God, begotten, not made, consubstantial with the Father; through him all things were made. For us men and for our salvation he came down from heaven, and by the Holy Spirit was incarnate of the Virgin Mary, and became man.</p>
+        <p>For our sake he was crucified under Pontius Pilate, he suffered death and was buried, and rose again on the third day in accordance with the Scriptures. He ascended into heaven and is seated at the right hand of the Father. He will come again in glory to judge the living and the dead and his kingdom will have no end.</p>
+        <p>I believe in the Holy Spirit, the Lord, the giver of life, who proceeds from the Father and the Son, who with the Father and the Son is adored and glorified, who has spoken through the prophets.</p>
+        <p>I believe in one, holy, catholic and apostolic Church. I confess one Baptism for the forgiveness of sins and I look forward to the resurrection of the dead and the life of the world to come. Amen.</p>
       </div>
     </details>
 
-    <details class="mass-part" data-title="collect opening prayer Amen sit">
-      <summary>Collect — Opening Prayer</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest</span>“Let us pray.” After a brief silence, the priest says the prayer appointed for that day.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-        <div class="action"><strong>Sit</strong> after the prayer is finished.</div>
-      </div>
-    </details>
-  </section>
-
-  <section id="word">
-    <h2>2. Liturgy of the Word</h2>
-
-    <details class="mass-part" open data-title="first reading thanks be to God sit">
-      <summary>First Reading</summary>
-      <div class="part-body">
-        <span class="posture">Sit</span>
-        <div class="cue"><span class="label">Reader</span>The reader proclaims the first Scripture reading, then says, “The word of the Lord.”</div>
-        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
+    <details class="prayer" data-title="Guardian Angel prayer protection">
+      <summary>Prayer to Your Guardian Angel</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Angel of God, my guardian dear,</span>
+          <span class="line">to whom God’s love commits me here,</span>
+          <span class="line">ever this day be at my side,</span>
+          <span class="line">to light and guard, to rule and guide. Amen.</span>
+        </p>
       </div>
     </details>
 
-    <details class="mass-part" data-title="responsorial psalm response cantor">
-      <summary>Responsorial Psalm</summary>
-      <div class="part-body">
-        <span class="posture">Remain seated</span>
-        <div class="cue"><span class="label">Cantor or reader</span>The cantor or reader announces and leads the Psalm response.</div>
-        <div class="people"><span class="label">Congregation</span>Repeat the Psalm response announced for that day.</div>
+    <details class="prayer" data-title="Angelus incarnation Mary noon morning evening">
+      <summary>The Angelus</summary>
+      <div class="prayer-text">
+        <p><strong>V.</strong> The Angel of the Lord declared unto Mary.<br><strong>R.</strong> And she conceived of the Holy Spirit.</p>
+        <p class="rubric">Pray one Hail Mary.</p>
+        <p><strong>V.</strong> Behold the handmaid of the Lord.<br><strong>R.</strong> Be it done unto me according to your Word.</p>
+        <p class="rubric">Pray one Hail Mary.</p>
+        <p><strong>V.</strong> And the Word was made flesh.<br><strong>R.</strong> And dwelt among us.</p>
+        <p class="rubric">Pray one Hail Mary.</p>
+        <p><strong>V.</strong> Pray for us, O holy Mother of God.<br><strong>R.</strong> That we may be made worthy of the promises of Christ.</p>
+        <p><strong>Let us pray.</strong> Pour forth, we beseech you, O Lord, your grace into our hearts: that we, to whom the Incarnation of Christ your Son was made known by the message of an Angel, may by his Passion and Cross be brought to the glory of his Resurrection. Through the same Christ our Lord. Amen.</p>
       </div>
     </details>
 
-    <details class="mass-part" data-title="second reading thanks be to God Sundays solemnities">
-      <summary>Second Reading</summary>
-      <div class="part-body">
-        <span class="posture">Remain seated</span>
-        <div class="cue"><span class="label">Reader</span>On Sundays and solemnities, a second Scripture reading is normally proclaimed, ending with “The word of the Lord.”</div>
-        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
+    <details class="prayer" data-title="Regina Caeli Easter Queen of Heaven Mary">
+      <summary>Regina Caeli</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Queen of heaven, rejoice, alleluia.</span>
+          <span class="line">The Son whom you merited to bear, alleluia,</span>
+          <span class="line">has risen as he said, alleluia.</span>
+          <span class="line">Pray for us to God, alleluia.</span>
+        </p>
+        <p><strong>V.</strong> Rejoice and be glad, O Virgin Mary, alleluia.<br><strong>R.</strong> For the Lord has truly risen, alleluia.</p>
+        <p><strong>Let us pray.</strong> O God, who have been pleased to gladden the world by the Resurrection of your Son our Lord Jesus Christ, grant, we pray, that through his Mother, the Virgin Mary, we may receive the joys of everlasting life. Through Christ our Lord. Amen.</p>
       </div>
     </details>
 
-    <details class="mass-part" open data-title="Alleluia Gospel acclamation stand Lent">
-      <summary>Gospel Acclamation</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">Cantor or choir</span>The Alleluia and verse are sung. During Lent, another Gospel acclamation is used instead of Alleluia.</div>
-        <div class="people"><span class="label">Congregation</span>Sing the Alleluia or the response led by the cantor.</div>
+    <details class="prayer" data-title="Divine Praises Benediction Eucharist Blessed Sacrament">
+      <summary>Divine Praises</summary>
+      <div class="prayer-text">
+        <p>
+          <span class="line">Blessed be God.</span>
+          <span class="line">Blessed be his holy Name.</span>
+          <span class="line">Blessed be Jesus Christ, true God and true man.</span>
+          <span class="line">Blessed be the Name of Jesus.</span>
+          <span class="line">Blessed be his most Sacred Heart.</span>
+          <span class="line">Blessed be his most Precious Blood.</span>
+          <span class="line">Blessed be Jesus in the most holy Sacrament of the altar.</span>
+          <span class="line">Blessed be the Holy Spirit, the Paraclete.</span>
+          <span class="line">Blessed be the great Mother of God, Mary most holy.</span>
+          <span class="line">Blessed be her holy and Immaculate Conception.</span>
+          <span class="line">Blessed be her glorious Assumption.</span>
+          <span class="line">Blessed be the name of Mary, Virgin and Mother.</span>
+          <span class="line">Blessed be Saint Joseph, her most chaste Spouse.</span>
+          <span class="line">Blessed be God in his Angels and in his Saints.</span>
+        </p>
       </div>
     </details>
 
-    <details class="mass-part" open data-title="Gospel and with your spirit glory to you O Lord sign forehead lips heart">
-      <summary>Gospel</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest or deacon</span>“The Lord be with you.”</div>
-        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
-        <div class="cue"><span class="label">Priest or deacon</span>“A reading from the holy Gospel according to…”</div>
-        <div class="people"><span class="label">Congregation</span>Glory to you, O Lord.</div>
-        <div class="action">
-          Make a small cross with your thumb on your forehead, lips, and heart: may the Gospel be in your mind, on your lips, and in your heart.
-        </div>
-        <div class="cue"><span class="label">After the Gospel</span>The priest or deacon says, “The Gospel of the Lord.”</div>
-        <div class="people"><span class="label">Congregation</span>Praise to you, Lord Jesus Christ.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="homily sermon sit">
-      <summary>Homily</summary>
-      <div class="part-body">
-        <span class="posture">Sit</span>
-        <div class="cue"><span class="label">Priest or deacon</span>The homily explains the Scriptures and applies them to Christian faith and life.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="Nicene Creed profession faith stand bow incarnation">
-      <summary>Profession of Faith — Nicene Creed</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="action">Bow deeply during the words about the Son of God becoming incarnate of the Virgin Mary and becoming man.</div>
-        <div class="people prayer-lines"><span class="label">Congregation</span>
-          <span>I believe in one God,</span>
-          <span>the Father almighty,</span>
-          <span>maker of heaven and earth,</span>
-          <span>of all things visible and invisible.</span><br>
-          <span>I believe in one Lord Jesus Christ,</span>
-          <span>the Only Begotten Son of God,</span>
-          <span>born of the Father before all ages.</span>
-          <span>God from God, Light from Light,</span>
-          <span>true God from true God,</span>
-          <span>begotten, not made, consubstantial with the Father;</span>
-          <span>through him all things were made.</span>
-          <span>For us men and for our salvation</span>
-          <span>he came down from heaven,</span>
-          <span>and by the Holy Spirit was incarnate of the Virgin Mary,</span>
-          <span>and became man.</span><br>
-          <span>For our sake he was crucified under Pontius Pilate,</span>
-          <span>he suffered death and was buried,</span>
-          <span>and rose again on the third day</span>
-          <span>in accordance with the Scriptures.</span>
-          <span>He ascended into heaven</span>
-          <span>and is seated at the right hand of the Father.</span>
-          <span>He will come again in glory</span>
-          <span>to judge the living and the dead</span>
-          <span>and his kingdom will have no end.</span><br>
-          <span>I believe in the Holy Spirit,</span>
-          <span>the Lord, the giver of life,</span>
-          <span>who proceeds from the Father and the Son,</span>
-          <span>who with the Father and the Son is adored and glorified,</span>
-          <span>who has spoken through the prophets.</span><br>
-          <span>I believe in one, holy, catholic and apostolic Church.</span>
-          <span>I confess one Baptism for the forgiveness of sins</span>
-          <span>and I look forward to the resurrection of the dead</span>
-          <span>and the life of the world to come. Amen.</span>
-        </div>
-        <p class="small">The Apostles’ Creed may be used on some occasions instead.</p>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="prayer faithful universal intercessions Lord hear our prayer">
-      <summary>Universal Prayer — Prayer of the Faithful</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Reader or deacon</span>Intentions are offered for the Church, the world, those in need, and the local community.</div>
-        <div class="people"><span class="label">Congregation</span>Use the response announced by the reader, commonly: Lord, hear our prayer.</div>
-        <div class="action"><strong>Sit</strong> after the priest’s concluding prayer.</div>
-      </div>
-    </details>
-  </section>
-
-  <section id="eucharist">
-    <h2>3. Liturgy of the Eucharist</h2>
-
-    <details class="mass-part" open data-title="offertory presentation gifts collection sit">
-      <summary>Preparation of the Altar and Gifts</summary>
-      <div class="part-body">
-        <span class="posture">Sit</span>
-        <div class="cue"><span class="label">What happens</span>The altar is prepared. Bread and wine are brought forward. A collection may be taken.</div>
-        <div class="variable">The priest’s prayers at the altar may be said quietly or aloud. If they are said aloud, the congregation may respond, “Blessed be God for ever.”</div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="pray brothers sisters sacrifice stand may Lord accept">
-      <summary>Invitation to Prayer Over the Offerings</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">Priest</span>The priest invites the people to pray that the sacrifice may be acceptable to God.</div>
-        <div class="people"><span class="label">Congregation</span>
-          May the Lord accept the sacrifice at your hands for the praise and glory of his name, for our good and the good of all his holy Church.
-        </div>
-        <div class="cue"><span class="label">Priest</span>The priest says the Prayer over the Offerings.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="preface dialogue lift hearts right just">
-      <summary>Preface Dialogue</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest</span>The Lord be with you.</div>
-        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
-        <div class="cue"><span class="label">Priest</span>Lift up your hearts.</div>
-        <div class="people"><span class="label">Congregation</span>We lift them up to the Lord.</div>
-        <div class="cue"><span class="label">Priest</span>Let us give thanks to the Lord our God.</div>
-        <div class="people"><span class="label">Congregation</span>It is right and just.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="Holy Sanctus kneel Hosanna">
-      <summary>Holy, Holy, Holy — Sanctus</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing while singing</span>
-        <div class="people"><span class="label">Congregation</span>
-          Holy, Holy, Holy Lord God of hosts.<br>
-          Heaven and earth are full of your glory.<br>
-          Hosanna in the highest.<br>
-          Blessed is he who comes in the name of the Lord.<br>
-          Hosanna in the highest.
-        </div>
-        <div class="action"><strong>Kneel</strong> immediately after the Holy, Holy, Holy, following the local custom and the congregation.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="Eucharistic prayer consecration kneel bells host chalice bow">
-      <summary>Eucharistic Prayer and Consecration</summary>
-      <div class="part-body">
-        <span class="posture">Kneel</span>
-        <div class="cue"><span class="label">Priest</span>The priest prays the Eucharistic Prayer. The words vary according to the Eucharistic Prayer chosen.</div>
-        <div class="action">
-          Listen prayerfully. At the consecration, the priest shows the consecrated Host and then the Chalice. You may look toward the Lord in adoration and silently pray, “My Lord and my God.”
-        </div>
-        <div class="cue"><span class="label">Priest</span>The priest announces the mystery of faith.</div>
-        <div class="people"><span class="label">Congregation — one of these is used</span>
-          We proclaim your Death, O Lord, and profess your Resurrection until you come again.<br><br>
-          <em>or</em><br><br>
-          When we eat this Bread and drink this Cup, we proclaim your Death, O Lord, until you come again.<br><br>
-          <em>or</em><br><br>
-          Save us, Savior of the world, for by your Cross and Resurrection you have set us free.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="Great Amen end Eucharistic prayer stand">
-      <summary>Great Amen</summary>
-      <div class="part-body">
-        <span class="posture">Remain kneeling</span>
-        <div class="cue"><span class="label">Priest</span>The Eucharistic Prayer ends with the doxology as the Host and Chalice are raised.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-        <div class="action"><strong>Stand</strong> after the Great Amen.</div>
-      </div>
-    </details>
-  </section>
-
-  <section id="communion">
-    <h2>4. Communion Rite</h2>
-
-    <details class="mass-part" open data-title="Our Father Lord prayer stand">
-      <summary>The Lord’s Prayer — Our Father</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">Priest</span>The priest introduces the prayer taught by Jesus.</div>
-        <div class="people prayer-lines"><span class="label">Congregation</span>
-          <span>Our Father, who art in heaven,</span>
-          <span>hallowed be thy name;</span>
-          <span>thy kingdom come;</span>
-          <span>thy will be done</span>
-          <span>on earth as it is in heaven.</span>
-          <span>Give us this day our daily bread;</span>
-          <span>and forgive us our trespasses</span>
-          <span>as we forgive those who trespass against us;</span>
-          <span>and lead us not into temptation,</span>
-          <span>but deliver us from evil.</span>
-        </div>
-        <div class="cue"><span class="label">Priest</span>The priest continues with the prayer for deliverance from evil.</div>
-        <div class="people"><span class="label">Congregation</span>
-          For the kingdom, the power and the glory are yours now and for ever.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="sign peace and with your spirit peace be with you">
-      <summary>Sign of Peace</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Priest</span>The peace of the Lord be with you always.</div>
-        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
-        <div class="action">
-          When invited, offer a simple sign of peace to the people immediately around you, such as a handshake, nod, or small bow, according to local custom.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="Lamb God Agnus Dei kneel mercy peace">
-      <summary>Lamb of God — Agnus Dei</summary>
-      <div class="part-body">
-        <span class="posture">Stand, then follow local posture</span>
-        <div class="people"><span class="label">Congregation</span>
-          Lamb of God, you take away the sins of the world, have mercy on us.<br>
-          Lamb of God, you take away the sins of the world, have mercy on us.<br>
-          Lamb of God, you take away the sins of the world, grant us peace.
-        </div>
-        <div class="action">
-          In many U.S. parishes, the congregation <strong>kneels</strong> after the Lamb of God. Follow the established practice of your diocese and parish.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="Lord not worthy roof soul healed Communion invitation">
-      <summary>Invitation to Holy Communion</summary>
-      <div class="part-body">
-        <span class="posture">Usually kneeling</span>
-        <div class="cue"><span class="label">Priest</span>The priest shows the consecrated Host and invites the faithful to the supper of the Lamb.</div>
-        <div class="people"><span class="label">Priest and Congregation together</span>
-          Lord, I am not worthy that you should enter under my roof, but only say the word and my soul shall be healed.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="receive Communion bow Body Christ Amen Blood Christ">
-      <summary>Receiving Holy Communion</summary>
-      <div class="part-body">
-        <span class="posture">Stand for the procession</span>
-        <span class="posture">Bow your head</span>
-        <div class="action">
-          Join the Communion procession only if properly disposed to receive. As the person immediately before you receives, bow your head reverently.
-        </div>
-        <div class="cue"><span class="label">Minister</span>The Body of Christ.</div>
-        <div class="people"><span class="label">You respond clearly</span>Amen.</div>
-        <div class="cue"><span class="label">If receiving from the Chalice</span>The Blood of Christ.</div>
-        <div class="people"><span class="label">You respond clearly</span>Amen.</div>
-        <div class="action">
-          Holy Communion is normally received standing in the United States, either on the tongue or in the hand. A communicant who chooses to kneel is not to be denied Communion for that reason.
-        </div>
-        <div class="important">
-          Catholics conscious of mortal sin should ordinarily receive sacramental absolution before receiving Holy Communion. Non-Catholics and Catholics not receiving may remain in the pew in prayer; local customs about approaching for a blessing vary.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="after Communion thanksgiving sit kneel silence prayer">
-      <summary>Prayer After Receiving Communion</summary>
-      <div class="part-body">
-        <span class="posture">Sit or kneel</span>
-        <div class="action">
-          Return to your place and pray quietly in thanksgiving. Follow your parish’s custom about sitting or kneeling while Communion continues.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="Prayer after Communion stand Amen">
-      <summary>Prayer After Communion</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">Priest</span>“Let us pray.” The priest says the Prayer after Communion appointed for that day.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-      </div>
-    </details>
-  </section>
-
-  <section id="ending">
-    <h2>5. Concluding Rites</h2>
-
-    <details class="mass-part" open data-title="announcements blessing stand and with your spirit Amen">
-      <summary>Announcements, Greeting, and Blessing</summary>
-      <div class="part-body">
-        <span class="posture">Stand</span>
-        <div class="cue"><span class="label">Priest</span>The Lord be with you.</div>
-        <div class="people"><span class="label">Congregation</span>And with your spirit.</div>
-        <div class="action">Bow your head if the deacon or priest invites you to do so for a solemn blessing.</div>
-        <div class="cue"><span class="label">Priest</span>The priest blesses the congregation in the name of the Father, the Son, and the Holy Spirit.</div>
-        <div class="people"><span class="label">Congregation</span>Amen.</div>
-      </div>
-    </details>
-
-    <details class="mass-part" open data-title="dismissal go forth Mass ended thanks God">
-      <summary>Dismissal</summary>
-      <div class="part-body">
-        <span class="posture">Remain standing</span>
-        <div class="cue"><span class="label">Deacon or priest</span>One of the approved dismissals is used, such as “Go forth, the Mass is ended.”</div>
-        <div class="people"><span class="label">Congregation</span>Thanks be to God.</div>
-        <div class="action">
-          Remain until the priest and ministers have reverenced the altar and the procession begins. Join the closing hymn when one is sung.
-        </div>
-      </div>
-    </details>
-
-    <details class="mass-part" data-title="leaving church genuflect bow">
-      <summary>Leaving the Church</summary>
-      <div class="part-body">
-        <span class="posture">Genuflect or bow</span>
-        <div class="action">
-          Before leaving your pew, genuflect toward the tabernacle if the Blessed Sacrament is reserved there. If unable to genuflect, make a reverent bow.
-        </div>
+    <details class="prayer" data-title="Prayer to Saint Joseph after Rosary Pope Leo XIII Quamquam pluries">
+      <summary>Prayer to Saint Joseph After the Rosary</summary>
+      <div class="prayer-text">
+        <p>To you, O blessed Joseph, do we come in our tribulation, and having implored the help of your most holy Spouse, we confidently invoke your patronage also. Through that charity which bound you to the Immaculate Virgin Mother of God and through the paternal love with which you embraced the Child Jesus, we humbly beg you graciously to regard the inheritance which Jesus Christ has purchased by his Blood, and with your power and strength to aid us in our necessities.</p>
+        <p>O most watchful guardian of the Holy Family, defend the chosen children of Jesus Christ; O most loving father, ward off from us every contagion of error and corrupting influence; O our most mighty protector, be kind to us and from heaven assist us in our struggle with the power of darkness.</p>
+        <p>As once you rescued the Child Jesus from deadly peril, so now protect God’s Holy Church from the snares of the enemy and from all adversity; shield, too, each one of us by your constant protection, so that, supported by your example and your aid, we may be able to live piously, to die in holiness, and to obtain eternal happiness in heaven. Amen.</p>
+        <p class="source-note">Composed by Pope Leo XIII and published in his 1889 encyclical <em>Quamquam pluries</em>.</p>
       </div>
     </details>
   </section>
 
   <section id="sources">
-    <h2>Sources & Important Notes</h2>
+    <h2>Sources & Notes</h2>
     <div class="notice source-list">
-      <p><strong>Roman Catholic sources only:</strong></p>
+      <p><strong>Roman Catholic-only rule:</strong> This collection excludes non-Catholic denominational prayer material.</p>
+      <p><strong>Photographed prayers:</strong> Transcribed from the OCP prayer card and prayer-book pages supplied for this project.</p>
+      <p><strong>Historical approved source:</strong> <em>Mary, Help of Christians</em>, compiled by Rev. Bonaventure Hammer, O.F.M., published by Benziger Brothers in 1909. The volume carries an Imprimi Permittitur, Nihil Obstat, and Imprimatur from Archbishop John M. Farley. Its public-domain transcription is hosted by Project Gutenberg.</p>
+      <p><strong>Papal approvals:</strong> Several family and short devotional prayers identify historical approvals or indulgence grants under Popes Pius VII, Pius IX, and Leo XIII. Historical indulgence language is included only as source identification; current indulgence discipline is governed by the Church’s present norms.</p>
+      <p><strong>Official and reference pages:</strong></p>
       <p>
-        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass" target="_blank" rel="noopener">USCCB — Order of Mass</a><br>
-        <a href="https://www.usccb.org/prayer-and-worship/the-mass/the-priest-at-mass" target="_blank" rel="noopener">USCCB — The Priest at Mass</a><br>
-        <a href="https://www.usccb.org/prayer-and-worship/the-mass/general-instruction-of-the-roman-missal" target="_blank" rel="noopener">USCCB — General Instruction of the Roman Missal</a><br>
-        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass/liturgy-of-the-eucharist/posture-during-the-eucharistic-prayer-and-our-father" target="_blank" rel="noopener">USCCB — Posture During the Eucharistic Prayer and Our Father</a><br>
-        <a href="https://www.usccb.org/prayer-and-worship/the-mass/order-of-mass/liturgy-of-the-eucharist/the-reception-of-holy-communion-at-mass" target="_blank" rel="noopener">USCCB — Reception of Holy Communion at Mass</a>
+        <a href="https://www.usccb.org/prayer-and-worship/prayers-and-devotions/prayers/basic-prayers" target="_blank" rel="noopener">USCCB Basic Prayers</a><br>
+        <a href="https://www.usccb.org/how-to-pray-the-rosary" target="_blank" rel="noopener">USCCB: How to Pray the Rosary</a><br>
+        <a href="https://www.usccb.org/prayers/prayer-st-joseph-after-rosary" target="_blank" rel="noopener">USCCB: Prayer to Saint Joseph After the Rosary</a><br>
+        <a href="https://www.usccb.org/topics/marriage-and-family-life-ministries/difficulties-married-couples-face" target="_blank" rel="noopener">USCCB: Difficulties Married Couples Face</a><br>
+        <a href="https://www.vatican.va/content/catechism/en/part_two/section_two/chapter_three/article_7/vi_the_domestic_church.html" target="_blank" rel="noopener">Vatican Catechism: The Domestic Church</a><br>
+        <a href="https://www.gutenberg.org/files/33596/33596-h/33596-h.htm" target="_blank" rel="noopener">Project Gutenberg: Mary, Help of Christians</a><br>
+        <a href="https://www.catholicculture.org/culture/library/view.cfm?id=462" target="_blank" rel="noopener">Historical Prayer for a Christian Family</a>
       </p>
-      <p>
-        This is a personal explanatory companion, not a replacement for the Roman Missal, Lectionary, parish missalette, or directions given by the celebrant. The priest’s proper prayers, readings, Psalm, Gospel acclamation, hymns, and certain options change according to the liturgical day.
-      </p>
-      <p>
-        The current English liturgical texts of the Roman Missal are copyrighted by the International Commission on English in the Liturgy Corporation. Longer variable texts are therefore described rather than reproduced here. Use the approved parish missal or worship aid for the complete text used at your celebration.
-      </p>
+      <p><strong>Editorial note:</strong> A small number of archaic pronouns and spellings were modernized for easier reading, without changing the Catholic doctrine or intention of the prayer.</p>
+      <p><strong>Use:</strong> These are devotional prayers for private prayer. They do not replace the prescribed texts of the Mass, the Sacraments, or other official liturgical rites.</p>
     </div>
-    <a class="back-link" href="Roman_Catholic_Prayer_Book_Expanded.html">← Open the Roman Catholic Prayer Book</a>
   </section>
 </main>
 
-<footer>
-  Prepared as a personal Roman Catholic Mass companion for use in the United States. Roman Catholic sources only.
-</footer>
+<footer>Prepared as a personal Roman Catholic prayer collection. Roman Catholic sources only. Works fully offline after saving the file.</footer>
 
 <script>
 (() => {
   const root = document.documentElement;
   const body = document.body;
-  const parts = [...document.querySelectorAll('details.mass-part')];
+  const prayers = [...document.querySelectorAll('details.prayer')];
   const search = document.getElementById('search');
-  let size = Number(localStorage.getItem('massGuideFontSize') || 1.17);
-
-  const applySize = () => root.style.setProperty('--text-size', size.toFixed(2) + 'rem');
+  let size = Number(localStorage.getItem('prayerFontSize') || 1.22);
+  const applySize = () => root.style.setProperty('--prayer-size', size.toFixed(2) + 'rem');
   applySize();
 
-  if (localStorage.getItem('massGuideDarkMode') === 'true') {
+  if (localStorage.getItem('prayerDarkMode') === 'true') {
     body.classList.add('dark');
     document.getElementById('theme').textContent = 'Light mode';
   }
 
   document.getElementById('larger').addEventListener('click', () => {
-    size = Math.min(2.1, size + .1);
-    applySize();
-    localStorage.setItem('massGuideFontSize', size);
+    size = Math.min(2.1, size + .1); applySize(); localStorage.setItem('prayerFontSize', size);
   });
-
   document.getElementById('smaller').addEventListener('click', () => {
-    size = Math.max(.95, size - .1);
-    applySize();
-    localStorage.setItem('massGuideFontSize', size);
+    size = Math.max(.95, size - .1); applySize(); localStorage.setItem('prayerFontSize', size);
   });
-
-  document.getElementById('openAll').addEventListener('click', () => {
-    parts.filter(p => !p.classList.contains('hidden')).forEach(p => p.open = true);
-  });
-
-  document.getElementById('closeAll').addEventListener('click', () => {
-    parts.forEach(p => p.open = false);
-  });
-
-  document.getElementById('theme').addEventListener('click', (event) => {
+  document.getElementById('openAll').addEventListener('click', () => prayers.filter(p => !p.classList.contains('hidden')).forEach(p => p.open = true));
+  document.getElementById('closeAll').addEventListener('click', () => prayers.forEach(p => p.open = false));
+  document.getElementById('theme').addEventListener('click', (e) => {
     body.classList.toggle('dark');
     const dark = body.classList.contains('dark');
-    event.currentTarget.textContent = dark ? 'Light mode' : 'Dark mode';
-    localStorage.setItem('massGuideDarkMode', dark);
+    e.currentTarget.textContent = dark ? 'Light mode' : 'Dark mode';
+    localStorage.setItem('prayerDarkMode', dark);
   });
-
+  const runSearch = (value) => {
+    search.value = value;
+    search.dispatchEvent(new Event('input'));
+    if (value) search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
   search.addEventListener('input', () => {
     const q = search.value.trim().toLowerCase();
-    parts.forEach(part => {
-      const haystack = ((part.dataset.title || '') + ' ' + part.textContent).toLowerCase();
-      const match = !q || haystack.includes(q);
-      part.classList.toggle('hidden', !match);
-      if (q && match) part.open = true;
+    prayers.forEach(p => {
+      const hay = ((p.dataset.title || '') + ' ' + p.textContent).toLowerCase();
+      const match = !q || hay.includes(q);
+      p.classList.toggle('hidden', !match);
+      if (q && match) p.open = true;
+      if (!q) p.open = false;
     });
+  });
+  document.querySelectorAll('[data-prayer-search]').forEach(button => {
+    button.addEventListener('click', () => runSearch(button.dataset.prayerSearch || ''));
   });
 })();
 </script>
